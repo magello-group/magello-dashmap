@@ -1,0 +1,3 @@
+# Magello Dashmap
+
+Privacy invader 😏
