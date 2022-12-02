@@ -1,0 +1,28 @@
+ktor {
+  deployment {
+    port = 8080
+    port = ${?PORT}
+  }
+  application {
+    modules = [se.magello.ApplicationKt.module]
+  }
+}
+security {
+  jwt {
+    issuer = "https://login.microsoftonline.com/0ef3ca2b-0b6f-4543-b1f3-eb1e7ec2069f/v2.0"
+    jwksUrl = "https://login.microsoftonline.com/0ef3ca2b-0b6f-4543-b1f3-eb1e7ec2069f/discovery/v2.0/keys"
+    requiredGroups = [
+      // Anställda gruppen i Azure
+      "e4dd494a-045a-4161-88c3-2884ac5df324"
+    ]
+  }
+}
+routing {
+  cors {
+    allowedHosts = ["http://localhost:3000"]
+  }
+  cinode {
+    accessId = ".app.cinode.com"
+    accessSecret = ""
+  }
+}
