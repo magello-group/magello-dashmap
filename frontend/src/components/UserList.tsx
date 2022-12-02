@@ -14,11 +14,33 @@ export interface User {
 export const UserList = ({userData}: {userData: User[]}) => {
     return (
         <>
-            {
-                userData.map((user) => {
-                    return (<p>{user.firstName} {user.lastName}{user.title ? ` - Titel: ${user.title}` : ""} </p>)
-                })
-            }
+            <table className="table table-striped table-dark">
+                <thead>
+                <tr>
+                    <th scope="col">Förnamn</th>
+                    <th scope="col">Efternamn</th>
+                    <th scope="col">Titel</th>
+                </tr>
+                </thead>
+                <tbody>
+                {
+                    userData.map((user) => {
+                        return (<UserRow user={user}/>)
+                    })
+                }
+                </tbody>
+            </table>
         </>
+    )
+}
+
+
+const UserRow = ({user}: {user: User}) => {
+    return (
+        <tr>
+            <td>{user.firstName}</td>
+            <td>{user.lastName}</td>
+            <td>{user.title ? user.title : "-"}</td>
+        </tr>
     )
 }

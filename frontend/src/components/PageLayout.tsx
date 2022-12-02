@@ -13,7 +13,7 @@ export const PageLayout = (props: any) => {
     return (
         <>
             <Navbar bg="primary" variant="dark">
-                <a className="navbar-brand" href="/">MSAL React Tutorial</a>
+                <a className="navbar-brand" href="/">Magello Dashmap</a>
                 {isAuthenticated ? <span>Signed In <SignOutButton/></span> : <SignInButton/>}
             </Navbar>
             <h5>

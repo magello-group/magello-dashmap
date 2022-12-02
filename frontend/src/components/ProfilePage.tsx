@@ -42,7 +42,7 @@ export const ProfilePage = () => {
     }
 
     const fetchUsers = (token: string) => {
-        fetch("http://localhost:8080/users?offset=2&limit=5", {
+        fetch("http://localhost:8080/users", {
             method: 'GET',
             headers: {
                 "Accept": "application/json",
