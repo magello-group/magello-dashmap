@@ -1,4 +1,4 @@
-package se.magello
+package se.magello.cinode
 
 import com.auth0.jwt.JWT
 import com.sksamuel.aedile.core.caffeineBuilder
@@ -11,13 +11,13 @@ import io.ktor.client.request.basicAuth
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import java.time.Duration
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.util.Timer
 import kotlin.concurrent.timer
 import kotlinx.coroutines.runBlocking
@@ -38,7 +38,7 @@ class CinodeClient(
 
     private val companyId = 150
 
-    private var authToken: AuthResponse? = null
+    private var authToken: CinodeAuthResponse? = null
 
     private val skillCache = caffeineBuilder<Int, List<CinodeSkill>> {}
         .build { getSkillsForUser(it) }
@@ -91,23 +91,23 @@ class CinodeClient(
         val response = httpClient.get(BASE_URL) {
             url.path("/token")
             basicAuth(accessId, accessSecret)
-        }.body<AuthResponse>()
+        }.body<CinodeAuthResponse>()
 
         logger.info { "Got Auth response: $response" }
 
         authToken = response
     }
 
-    private suspend fun getOrRefreshToken(): AuthResponse? {
+    private suspend fun getOrRefreshToken(): CinodeAuthResponse? {
         val decodeJwt = try {
             JWT().decodeJwt(authToken?.accessToken)
         } catch (_: Exception) {
             null
         }
 
-        val from = Instant.now().minus(10, ChronoUnit.SECONDS)
+        val now = Instant.now()
 
-        if (decodeJwt == null || decodeJwt.expiresAt.toInstant().isAfter(from)) {
+        if (decodeJwt == null || now.isAfter(decodeJwt.expiresAt.toInstant())) {
             fetchToken()
         }
 
@@ -137,9 +137,19 @@ class CinodeClient(
 
         logger.info { "Fetching skills for user with id=$userId" }
 
-        return httpClient.get(BASE_URL) {
+        val response = httpClient.get(BASE_URL) {
             url.path("/v0.1/companies/$companyId/users/$userId/skills")
             bearerAuth(token.accessToken)
-        }.body()
+        }
+
+        val cinodeSkills: List<CinodeSkill> = if (response.status == HttpStatusCode.OK) {
+            response.body()
+        } else {
+            val body = response.bodyAsText()
+            logger.info { "Failed to fetch cinode skills for user - got ${response.status} with body ['$body']" }
+            emptyList()
+        }
+
+        return cinodeSkills
     }
 }

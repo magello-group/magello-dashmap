@@ -31,6 +31,8 @@ dependencies {
   implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
   implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
   implementation("io.ktor:ktor-client-okhttp:$ktor_version")
+  implementation("io.ktor:ktor-client-logging:$ktor_version")
+  implementation("io.ktor:ktor-client-resources:$ktor_version")
   implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
   implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
   implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
@@ -50,6 +52,7 @@ dependencies {
   implementation("io.ktor:ktor-server-sessions-jvm:2.1.3")
   implementation("io.ktor:ktor-server-cors-jvm:2.1.3")
   implementation("io.ktor:ktor-server-call-logging-jvm:2.1.3")
+  implementation("io.ktor:ktor-client-logging-jvm:2.1.3")
 
   testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

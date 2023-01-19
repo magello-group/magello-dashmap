@@ -1,11 +1,11 @@
-package se.magello
+package se.magello.cinode
 
 import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AuthResponse(
+data class CinodeAuthResponse(
     @SerialName("access_token") val accessToken: String,
     @SerialName("refresh_token") val refreshToken: String,
     @Transient val createdAt: String = Instant.now().toString()
