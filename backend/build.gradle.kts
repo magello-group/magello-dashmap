@@ -2,6 +2,7 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val moshi_version: String by project
+val exposed_version: String by project
 
 plugins {
   application
@@ -33,12 +34,15 @@ dependencies {
   implementation("io.ktor:ktor-client-okhttp:$ktor_version")
   implementation("io.ktor:ktor-client-logging:$ktor_version")
   implementation("io.ktor:ktor-client-resources:$ktor_version")
+  implementation("io.ktor:ktor-client-logging-jvm:$ktor_version")
   implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
   implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
   implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
   implementation("io.ktor:ktor-server-cors:$ktor_version")
   implementation("io.ktor:ktor-server-call-logging:$ktor_version")
-
+  implementation("io.ktor:ktor-server-sessions-jvm:$ktor_version")
+  implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
+  implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
 
   // sessions since we dont have a frontend
   implementation("io.ktor:ktor-server-sessions-jvm:$ktor_version")
@@ -49,10 +53,13 @@ dependencies {
   // cache
   implementation("com.sksamuel.aedile:aedile-core:1.1.2")
   implementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
-  implementation("io.ktor:ktor-server-sessions-jvm:2.1.3")
-  implementation("io.ktor:ktor-server-cors-jvm:2.1.3")
-  implementation("io.ktor:ktor-server-call-logging-jvm:2.1.3")
-  implementation("io.ktor:ktor-client-logging-jvm:2.1.3")
+
+  // database
+  implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
+  implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
+  implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+  implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
+  implementation("org.xerial:sqlite-jdbc:3.40.0.0")
 
   testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")

@@ -12,6 +12,7 @@ import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.request.path
 import io.ktor.server.resources.Resources
 import org.slf4j.event.Level
+import se.magello.plugins.configureDatabase
 import se.magello.plugins.configureRouting
 import se.magello.plugins.configureSecurity
 
@@ -21,6 +22,8 @@ fun main(args: Array<String>): Unit =
 @Suppress("unused")
 fun Application.module() {
     val applicationConfig = ConfigFactory.defaultApplication()
+
+    configureDatabase(applicationConfig.getConfig("database"))
 
     install(ContentNegotiation) {
         json()

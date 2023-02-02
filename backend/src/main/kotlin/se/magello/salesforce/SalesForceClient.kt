@@ -54,10 +54,12 @@ class SalesForceClient(config: Config) {
 
         httpClient = HttpClient(OkHttp) {
             install(Resources)
+/*
             install(Logging) {
                 logger = Logger.DEFAULT
                 level = LogLevel.INFO
             }
+*/
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true

@@ -3,7 +3,7 @@ package se.magello.salesforce
 import java.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import se.magello.serialization.InstantSerializer
+import se.magello.serialization.InstantEpochSerializer
 
 /**
  * Salesforce Authorization response.
@@ -15,7 +15,7 @@ data class SalesForceAuthResponse(
     @SerialName("access_token") val accessToken: String,
     val id: String,
     @SerialName("instance_url") val instanceUrl: String,
-    @Serializable(with = InstantSerializer::class) @SerialName("issued_at") val issuedAt: Instant,
+    @Serializable(with = InstantEpochSerializer::class) @SerialName("issued_at") val issuedAt: Instant,
     val signature: String,
     @SerialName("token_type") val tokenType: String,
     val scope: String = ""
