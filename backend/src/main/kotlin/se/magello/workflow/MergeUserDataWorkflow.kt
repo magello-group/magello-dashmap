@@ -1,5 +1,6 @@
 package se.magello.workflow
 
+import io.ktor.server.auth.jwt.JWTPrincipal
 import java.time.Duration
 import java.time.Instant
 import kotlin.concurrent.timer
@@ -12,6 +13,8 @@ import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.db.Refresh
 import se.magello.db.User
+import se.magello.db.UserPreference
+import se.magello.db.Users
 import se.magello.db.Workplace
 
 private val logger = KotlinLogging.logger {}
@@ -38,6 +41,80 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    fun postUserPreferences(principal: JWTPrincipal, preferences: MagelloUserPreferences) {
+        val email = principal.getClaim("email", String::class)
+            ?: throw IllegalStateException("This user is not allowed to update preferences")
+
+        transaction {
+            val user = User.find { Users.email eq email }.firstOrNull()
+                ?: throw IllegalStateException("No user with email $email exists")
+
+            val userPreferences = UserPreference.findById(email)
+            if (userPreferences == null) {
+                val newPreferences = UserPreference.new(email) {
+                    dietPreferences = preferences.dietPreferences
+                    extraDietPreferences = preferences.extraDietPreferences
+                    socials = preferences.socials
+                    quote = preferences.socials
+                }
+                user.preferences = newPreferences
+            } else {
+                userPreferences.dietPreferences = preferences.dietPreferences
+                userPreferences.extraDietPreferences = preferences.extraDietPreferences
+                userPreferences.socials = preferences.socials
+                userPreferences.quote = preferences.quote
+            }
+        }
+    }
+
+    fun getUserSelf(principal: JWTPrincipal): MagelloUserSelf? {
+        val email = principal.getClaim("email", String::class) ?: return null
+
+        return transaction {
+            val user = User.find { Users.email eq email }
+                .with(User::workplace, User::skills, User::preferences)
+                .singleOrNull()
+            if (user != null) {
+                MagelloUserSelf(
+                    id = user.id.value,
+                    email = user.email,
+                    firstName = user.firstName,
+                    imageUrl = user.imageUrl,
+                    lastName = user.lastName,
+                    title = user.title,
+                    skills = user.skills.map { skill ->
+                        MagelloSkill(
+                            id = skill.id.value,
+                            favourite = skill.favourite,
+                            masterSynonym = skill.masterSynonym,
+                            synonyms = skill.synonyms?.split(";") ?: emptyList(),
+                            level = skill.level,
+                            levelGoal = skill.levelGoal,
+                            levelGoalDeadline = skill.levelGoalDeadline,
+                            numberOfDaysWorkExperience = skill.numberOfDaysWorkExperience
+                        )
+                    },
+                    assignment = MagelloWorkAssignment(
+                        organisationId = user.workplace.id.value,
+                        companyName = user.workplace.companyName,
+                        longitude = user.workplace.longitude,
+                        latitude = user.workplace.latitude,
+                    ),
+                    preferences = user.preferences?.let {
+                        MagelloUserPreferences(
+                            it.dietPreferences,
+                            it.extraDietPreferences,
+                            it.socials,
+                            it.quote
+                        )
+                    }
+                )
+            } else {
+                null
             }
         }
     }

@@ -10,6 +10,7 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
+import se.magello.workflow.MagelloUser
 
 /**
  * User Table with DAO
@@ -21,6 +22,7 @@ object Users : IntIdTable() {
     val imageUrl = varchar("imageUrl", 2048).nullable()
     val title = varchar("title", 512).nullable()
     val workplace = reference("workplace", Workplaces)
+    val preferences = optReference("preferences", UserPreferences)
 }
 class User(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<User>(Users)
@@ -32,6 +34,27 @@ class User(id: EntityID<Int>) : IntEntity(id) {
 
     var skills by Skill via UserSkills
     var workplace by Workplace referencedOn Users.workplace
+    var preferences by UserPreference optionalReferencedOn Users.preferences
+}
+
+/**
+ * User Preferences table with DAO
+ */
+object UserPreferences : IdTable<String>() {
+    override val id = varchar("id", 1024).entityId()
+    val dietPreferences = text("dietPreferences", eagerLoading = true).nullable()
+    val extraDietPreferences = text("extraDietPreferences", eagerLoading = true).nullable()
+    val socials = text("socials", eagerLoading = true).nullable()
+    val quote = varchar("quote", 2048).nullable()
+}
+class UserPreference(id: EntityID<String>) : Entity<String>(id) {
+    companion object : EntityClass<String, UserPreference>(UserPreferences)
+    var dietPreferences by UserPreferences.dietPreferences
+    var extraDietPreferences by UserPreferences.extraDietPreferences
+    var socials by UserPreferences.socials
+    var quote by UserPreferences.quote
+
+    val user by User optionalReferrersOn Users.preferences
 }
 
 /**

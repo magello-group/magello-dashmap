@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.db.LatestRefresh
 import se.magello.db.Refresh
 import se.magello.db.Skills
+import se.magello.db.UserPreferences
 import se.magello.db.UserSkills
 import se.magello.db.Users
 import se.magello.db.Workplaces
@@ -24,6 +25,6 @@ fun Application.configureDatabase(config: Config) {
     Database.connect(url, user = username, password = password)
 
     transaction {
-        SchemaUtils.create(Users, Skills, Workplaces, UserSkills, LatestRefresh)
+        SchemaUtils.create(Users, Skills, Workplaces, UserSkills, LatestRefresh, UserPreferences)
     }
 }
