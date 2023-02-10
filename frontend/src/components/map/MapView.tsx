@@ -1,33 +1,37 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
-import styled from "styled-components";
+import styled, {css} from "styled-components";
 import {WeWorkHerePage} from "./WeWorkHerePage";
 import {MagelloWorkAssignment} from "../dataTypes/dataTypes";
 import {PopupEvent} from "leaflet";
-import {UnauthenticatedTemplate} from "@azure/msal-react";
+import {WorkplaceContext} from "../../App";
 
-export const MapView = (props: {path: string, isLoading: boolean, data: MagelloWorkAssignment[] | null}) => {
+export const MapView = () => {
+    const {workplaces: data, isLoading} = useContext(WorkplaceContext);
     const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkAssignment | null>(null)
+
+    const mapContent = useCallback(() => {
+        return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]}
+                                                         zoom={10} scrollWheelZoom={false}>
+            <TileLayer
+                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+                url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+                maxZoom={20}
+            />
+            <Workplaces data={data ? data : []} currentWorkplace={currentWorkplace}
+                        setCurrentWorkplace={setCurrentWorkplace}/>
+        </StyledMapContainer>)
+    }, [currentWorkplace, data, isLoading]);
 
     return (
         <>
-            <UnauthenticatedTemplate>
-                <MapHolder>
-                    {props.isLoading ? <div/> :
-                        <StyledMapContainer center={[59.325, 18.07]}
-                                      zoom={10} scrollWheelZoom={false}>
-                            <TileLayer
-                                attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-                                url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
-                                maxZoom={20}
-                            />
-                            <Workplaces data={props.data ? props.data : []} currentWorkplace={currentWorkplace}
-                                        setCurrentWorkplace={setCurrentWorkplace}/>
-                        </StyledMapContainer>
-                    }
-                </MapHolder>
-                <WeWorkHerePage currentWorkplace={currentWorkplace}/>
-            </UnauthenticatedTemplate>
+            {currentWorkplace && <MapHolderExpanded>
+                {mapContent()}
+            </MapHolderExpanded>}
+            {!currentWorkplace && <MapHolderFullscreen>
+                {mapContent()}
+            </MapHolderFullscreen>}
+            {currentWorkplace && <WeWorkHerePage currentWorkplace={currentWorkplace}/>}
         </>
     )
 }
@@ -102,17 +106,23 @@ const Workplaces = ({
     )
 }
 
-const MapHolder = styled.div`
+const baseMapHolder = css`
   width: 100%;
-  min-height: 50%;
-  // TODO: How can we render map without setting height to a fixed size?
-  height: 800px;
-  max-height: 50%;
   margin-right: auto;
   margin-left: auto;
   align-items: center;
   display: flex;
   overflow: hidden;
+`
+
+const MapHolderExpanded = styled.div`
+  height: 50vh;
+  ${baseMapHolder}
+`
+
+const MapHolderFullscreen = styled.div`
+  height: calc(100vh - 80px);
+  ${baseMapHolder}
 `
 
 const StyledMapContainer = styled(MapContainer)`
