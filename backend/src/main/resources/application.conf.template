@@ -25,4 +25,16 @@ routing {
     accessId = ".app.cinode.com"
     accessSecret = ""
   }
+  salesforce {
+    clientId = ""
+    clientSecret = ""
+    apiHost = ""
+    sessionTimeout = 2
+  }
+}
+database {
+  // Lokal databas på fil
+  url = "jdbc:sqlite:dashmap.db"
+  username = "root"
+  password = "password"
 }
