@@ -20,7 +20,7 @@ export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
                 <StockImage src="https://magello.se/wp-content/uploads/2019/05/Kattux-start-head.svg"/>
             }
             <Name>{worker.firstName} {worker.lastName}</Name>
-            <Quote>{quotes[Math.floor(Math.random() * quotes.length)]}</Quote>
+            {worker.quote && (<Quote>{worker.quote ? worker.quote : ""}</Quote>)}
         </Content>
     )
 }
@@ -28,7 +28,7 @@ export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
 const Content = styled.div`
   padding: 1% 1%;
   width: 240px;
-  min-height: 480px;
+  min-height: 320px;
   display: inline-block;
   text-align: center;
   border-radius: 10px 10px;
@@ -42,7 +42,7 @@ const Image = styled.img`
   height: 200px;
   width: 200px;
   margin-bottom: 5px;
-  box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
 `
 
 const StockImage = styled.img`
@@ -53,7 +53,7 @@ const StockImage = styled.img`
   width: 200px;
   transform: rotate(0.5turn);
   margin-bottom: 5px;
-  box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
 `
 
 const Name = styled.div`
@@ -70,10 +70,12 @@ const Quote = styled.q`
   hyphens: manual;
   quotes: '"' '"';
   font-style: italic;
-  ::before{
+
+  ::before {
     content: open-quote;
   }
-  ::after{
+
+  ::after {
     content: close-quote;
   }
 `

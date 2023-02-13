@@ -1,108 +1,55 @@
-import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
-import Select, {ActionMeta, OnChangeValue} from "react-select";
+import React from "react";
+import Select from "react-select";
 import makeAnimated from 'react-select/animated';
-import {FormLabel, FormTextArea} from "./components/FormComponents";
+import {FormInput, FormLabel} from "./components/FormComponents";
 import styled from "styled-components";
+import {Control, Controller, UseFormRegister} from "react-hook-form";
+import {Diet, MagelloFormPreferences, options} from "./formTypes";
 
 export interface FoodPreferencesProps {
-    dietPreferences?: string
-    extraDietPreferences?: string
-    setDiet: (diet: string) => void
-    setDietExtras: (event: ChangeEvent<any>) => void
+    register: UseFormRegister<MagelloFormPreferences>
+    control: Control<MagelloFormPreferences, any>
 }
 
-export const FoodPreferences = ({
-                                    dietPreferences,
-                                    extraDietPreferences,
-                                    setDiet,
-                                    setDietExtras
-                                }: FoodPreferencesProps) => {
+export const FoodPreferences = ({register, control}: FoodPreferencesProps) => {
     return (
         <>
             <FormLabel>Dietära preferenser
-                <DietaryMultiSelect dietPreferences={dietPreferences} setDiet={setDiet}/>
+                <DietaryMultiSelect control={control}/>
             </FormLabel>
             <FormLabel>Övriga dietära preferenser
-                <FormTextArea value={extraDietPreferences} onChange={setDietExtras}
-                              placeholder={"Jag äter inte sjögräs..."}/>
+                <FormInput type="text" {...register("extraDietPreferences")} placeholder={"Jag äter inte sjögräs..."}/>
             </FormLabel>
         </>
     );
 }
 
-const options: Diet[] = [
-    {value: 'nuts', label: 'Nötallergi'},
-    {value: 'vegan', label: 'Vegansk diet'},
-    {value: 'vegetarian', label: 'Vegetarisk diet'},
-    {value: 'eggs', label: 'Äggfri'},
-    {value: 'lactose', label: 'Laktosfri'},
-    {value: 'gluten', label: 'Glutenfri'},
-    {value: 'pork', label: 'Fläskfri'},
-    {value: 'fish', label: 'Fiskfri'},
-];
-
-interface Diet {
-    value: string,
-    label: string,
-}
-
 interface DietaryMultiSelectProps {
-    dietPreferences?: string
-    setDiet: (diet: string) => void
+    control: Control<MagelloFormPreferences, any>
 }
 
-const DietaryMultiSelect = ({dietPreferences, setDiet}: DietaryMultiSelectProps) => {
-    const [selectedOptions, setSelectedOptions] = useState<Diet[]>(
-        dietPreferences
-            ? dietPreferences.split(";")
-                .map((diet) => options.find(value => diet === value.value))
-                .filter(diet => diet) as Diet[]
-            : []
-    );
+const DietaryMultiSelect = ({control}: DietaryMultiSelectProps) => {
     const animatedComponents = makeAnimated()
 
-    const onChange = useCallback((value: OnChangeValue<Diet, true>, actionMeta: ActionMeta<Diet>) => {
-        switch (actionMeta.action) {
-            case 'remove-value':
-            case 'pop-value':
-                setSelectedOptions((prevState) => prevState.filter((v) => v.value != actionMeta.removedValue.value));
-                break;
-            case 'clear':
-                setSelectedOptions([]);
-                break;
-            case "create-option":
-            case "select-option":
-                setSelectedOptions((prevState) => {
-                    if (actionMeta.option) {
-                        const newState = [
-                            actionMeta.option,
-                            ...prevState
-                        ];
-                        return newState;
-                    }
-
-                    return prevState;
-                })
-        }
-    }, [])
-
-    useEffect(() => {
-        setDiet(selectedOptions.map((d) => d.value).join(";"))
-    }, [selectedOptions])
-
     return (
-        <MultiSelect
-            placeholder={"Välj en eller flera..."}
-            value={selectedOptions}
-            options={options}
-            onChange={onChange}
-            components={animatedComponents}
-            getOptionLabel={(diet: Diet) => diet.label}
-            getOptionValue={(diet: Diet) => diet.value}
-            isMulti={true}
-            backspaceRemovesValue={true}
-            isClearable={true}
-        />
+        <Controller name={"dietPreferences"}
+                    control={control}
+                    render={({field: {value, ref, onChange, onBlur}}) => (
+                        <MultiSelect
+                            inputRef={ref}
+                            placeholder={"Välj en eller flera..."}
+                            value={value}
+                            options={options}
+                            onChange={onChange}
+                            onBlur={onBlur}
+                            getOptionLabel={(diet: Diet) => diet.label}
+                            getOptionValue={(diet: Diet) => diet.value}
+                            components={animatedComponents}
+                            isMulti={true}
+                            backspaceRemovesValue={true}
+                            isClearable={true}
+                        />
+                    )}/>
     )
 }
 

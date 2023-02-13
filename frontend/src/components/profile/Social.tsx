@@ -1,17 +1,46 @@
-import React, {ChangeEvent, useCallback, useState} from "react";
-import {FormInput, FormLabel} from "./components/FormComponents";
+import React, {useCallback, useState} from "react";
+import {FormButton, FormInput, FormLabel} from "./components/FormComponents";
 import {SocialIcon} from "react-social-icons";
 import styled from "styled-components";
+import {Control, useFieldArray, UseFieldArrayRemove, UseFormRegister, UseFormWatch} from "react-hook-form";
+import {MagelloFormPreferences} from "./formTypes";
+import {IoClose} from "react-icons/io5";
 
 export interface SocialProps {
-    // For now socials is only one
-    socials?: string
-    quote?: string
-    setSocials: (event: ChangeEvent<any>) => void
-    setQuote: (event: ChangeEvent<any>) => void
+    control: Control<MagelloFormPreferences>
+    register: UseFormRegister<MagelloFormPreferences>
+    watch: UseFormWatch<MagelloFormPreferences>
 }
 
-export const Social = ({socials, quote, setSocials, setQuote}: SocialProps) => {
+export const Social = ({register, watch, control}: SocialProps) => {
+    const {fields, append, remove} = useFieldArray({
+        name: "socials",
+        control: control
+    });
+
+    return (
+        <>
+            <FormLabel>Schysst citat som visas under ditt namn
+                <FormInput type="text" {...register("quote")} placeholder={"May the force be with you..."}/>
+            </FormLabel>
+            <FormLabel>Social sida
+                {fields.map((field, index) => (
+                    <SocialPageInput key={field.id} register={register} index={index} watch={watch} remove={remove}/>
+                ))}
+                <FormButton type="button" onClick={() => append({url: ""})} value="Lägg till ett till länk fält"/>
+            </FormLabel>
+        </>
+    )
+}
+
+interface SocialPageInputProps {
+    register: UseFormRegister<MagelloFormPreferences>
+    index: number
+    watch: UseFormWatch<MagelloFormPreferences>
+    remove: UseFieldArrayRemove
+}
+
+const SocialPageInput = (props: SocialPageInputProps) => {
     const [focused, setFocused] = useState<boolean>(false)
 
     const onFocus = useCallback(() => {
@@ -21,22 +50,18 @@ export const Social = ({socials, quote, setSocials, setQuote}: SocialProps) => {
         setFocused(false)
     }, [setFocused])
 
+    const watch = props.watch(`socials.${props.index}.url`);
+
     return (
-        <>
-            <FormLabel>Social sida
-                { /* TODO: Make this to its own component so that it can be reused. */ }
-                <FormGroup>
-                    <SuperSpan theme={{focus: focused}}>
-                        <SocialIcon style={{maxHeight: "30px", maxWidth: "30px", pointerEvents: "none"}} url={socials}/>
-                    </SuperSpan>
-                    <SuperInput type="text" value={socials} onChange={setSocials} onFocus={onFocus} onBlur={onBlur}
-                               placeholder={"https://github.com/"}/>
-                </FormGroup>
-            </FormLabel>
-            <FormLabel>Schysst citat som visas under ditt namn
-                <FormInput type="text" value={quote} onChange={setQuote} placeholder={"May the force be with you..."}/>
-            </FormLabel>
-        </>
+        <FormGroup>
+            <SuperSpan theme={{focus: focused}}>
+                <SocialIcon style={{maxHeight: "30px", maxWidth: "30px", pointerEvents: "none"}} url={watch}/>
+            </SuperSpan>
+            <SuperInput type="text" {...props.register(`socials.${props.index}.url` as const)} onFocus={onFocus}
+                        onBlur={onBlur}
+                        placeholder={"https://github.com/..."}/>
+            <RemoveSpan theme={{focus: focused}} onClick={() => props.remove(props.index)}><IoClose/></RemoveSpan>
+        </FormGroup>
     )
 }
 
@@ -47,7 +72,7 @@ const SuperInput = styled.input`
   display: inline-block;
   border: 1px solid #ccc;
   border-left: none;
-  border-radius: 0 4px 4px 0;
+  border-right: none;
   box-sizing: border-box;
   font-family: inherit;
   font-size: 1rem;
@@ -55,6 +80,7 @@ const SuperInput = styled.input`
   :focus-visible {
     border: 1px #00aeef solid;
     border-left: none;
+    border-right: none;
     outline: none;
   }
 `
@@ -73,9 +99,23 @@ const SuperSpan = styled.span`
   ${props => props.theme.focus && 'border: 1px #00aeef solid'}
 `
 
+const RemoveSpan = styled.span`
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 0 4px 4px 0;
+  padding: 0 8px;
+  margin: 8px auto;
+  text-align: center;
+  display: flex;
+  justify-items: center;
+  align-items: center;
+
+  ${props => props.theme.focus && 'border: 1px #00aeef solid'}
+`
+
 const FormGroup = styled.div`
   display: flex;
-  
+
   :focus span {
     border: 1px #00aeef solid;
     border-left: none;

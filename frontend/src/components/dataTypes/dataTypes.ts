@@ -20,10 +20,14 @@ export interface MagelloUser {
 }
 
 export interface MagelloUserPreferences {
-    dietPreferences?: string
+    dietPreferences: string[]
     extraDietPreferences?: string
-    socials?: string
+    socials: SocialUrl[]
     quote?: string
+}
+
+export interface SocialUrl {
+    url: string
 }
 
 export interface StrippedMagelloUser {
@@ -33,6 +37,7 @@ export interface StrippedMagelloUser {
     imageUrl?: string
     lastName: string
     title: string
+    quote?: string
 }
 
 export interface MagelloSkill {
