@@ -56,16 +56,16 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
             val userPreferences = UserPreference.findById(email)
             if (userPreferences == null) {
                 val newPreferences = UserPreference.new(email) {
-                    dietPreferences = preferences.dietPreferences
+                    dietPreferences = preferences.dietPreferences.joinToString(";")
                     extraDietPreferences = preferences.extraDietPreferences
-                    socials = preferences.socials
-                    quote = preferences.socials
+                    socials = preferences.socials.joinToString(";") { socialUrl -> socialUrl.url }
+                    quote = preferences.quote
                 }
                 user.preferences = newPreferences
             } else {
-                userPreferences.dietPreferences = preferences.dietPreferences
+                userPreferences.dietPreferences = preferences.dietPreferences.joinToString(";")
                 userPreferences.extraDietPreferences = preferences.extraDietPreferences
-                userPreferences.socials = preferences.socials
+                userPreferences.socials = preferences.socials.joinToString(";") { socialUrl -> socialUrl.url }
                 userPreferences.quote = preferences.quote
             }
         }
@@ -106,9 +106,9 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                     ),
                     preferences = user.preferences?.let {
                         MagelloUserPreferences(
-                            it.dietPreferences,
+                            it.dietPreferences.split(";"),
                             it.extraDietPreferences,
-                            it.socials,
+                            it.socials.split(";").map { url -> SocialUrl(url) },
                             it.quote
                         )
                     }
@@ -153,7 +153,8 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                             user.firstName,
                             user.imageUrl,
                             user.lastName,
-                            user.title
+                            user.title,
+                            user.preferences?.quote
                         )
                     }
                 )
@@ -186,7 +187,8 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                                 user.firstName,
                                 user.imageUrl,
                                 user.lastName,
-                                user.title
+                                user.title,
+                                user.preferences?.quote
                             )
                         }
                     )

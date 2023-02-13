@@ -42,9 +42,9 @@ class User(id: EntityID<Int>) : IntEntity(id) {
  */
 object UserPreferences : IdTable<String>() {
     override val id = varchar("id", 1024).entityId()
-    val dietPreferences = text("dietPreferences", eagerLoading = true).nullable()
+    val dietPreferences = text("dietPreferences", eagerLoading = true)
     val extraDietPreferences = text("extraDietPreferences", eagerLoading = true).nullable()
-    val socials = text("socials", eagerLoading = true).nullable()
+    val socials = text("socials", eagerLoading = true)
     val quote = varchar("quote", 2048).nullable()
 }
 class UserPreference(id: EntityID<String>) : Entity<String>(id) {

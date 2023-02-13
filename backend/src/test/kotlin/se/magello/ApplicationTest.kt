@@ -77,7 +77,7 @@ class ApplicationTest {
         }
 
         transaction {
-            val newWorkplace = Workplace.new(55551102) {
+            val newWorkplace = Workplace.new("55551102") {
                 companyName = MAGELLO_OFFICE.name
                 longitude = MAGELLO_OFFICE_COORDINATES.lon
                 latitude = MAGELLO_OFFICE_COORDINATES.lat
@@ -158,6 +158,13 @@ class ApplicationTest {
 
         val string = json.encodeToString(response)
 
+        println(string)
+    }
+
+    @Test
+    fun hejsan() {
+        val array = listOf<String>()
+        val string = array.joinToString(";")
         println(string)
     }
 }

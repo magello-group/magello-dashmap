@@ -187,11 +187,14 @@ data class MagelloUserSelf(
 
 @Serializable
 data class MagelloUserPreferences(
-    val dietPreferences: String?,
+    val dietPreferences: List<String> = emptyList(),
     val extraDietPreferences: String?,
-    val socials: String?, // TODO: Make into array of strings
+    val socials: List<SocialUrl> = emptyList(),
     val quote: String?
 )
+
+@Serializable
+data class SocialUrl(val url: String)
 
 @Serializable
 data class StrippedMagelloUser(
@@ -201,6 +204,7 @@ data class StrippedMagelloUser(
     val imageUrl: String?,
     val lastName: String,
     val title: String?,
+    val quote: String?
 )
 
 @Serializable
