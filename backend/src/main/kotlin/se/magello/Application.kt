@@ -11,6 +11,7 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.request.path
 import io.ktor.server.resources.Resources
+import io.ktor.server.routing.Routing
 import org.slf4j.event.Level
 import se.magello.plugins.configureDatabase
 import se.magello.plugins.configureRouting
@@ -40,7 +41,9 @@ fun Application.module() {
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
 
         corsConfig.getStringList("allowedHosts").forEach {
             allowHost(it)

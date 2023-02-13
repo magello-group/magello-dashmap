@@ -3,7 +3,7 @@ import {useIsAuthenticated} from "@azure/msal-react";
 import {SignInButton} from "./SignInButton";
 import {SignOutButton} from "./SignOutButton";
 import styled from "styled-components";
-import {Link} from "@reach/router";
+import {Link} from "react-router-dom";
 
 /**
  * Renders the navbar component with a sign-in button if a user is not authenticated
@@ -38,7 +38,6 @@ export const MagelloImage = styled.img`
 `
 
 const Header = styled.div`
-  font-family: "Roboto", "sans-serif";
   font-size: 17px;
   box-sizing: border-box;
   background-color: #fff;
@@ -49,7 +48,7 @@ const Header = styled.div`
 `
 
 export const HeaderContents = styled.div`
-  min-height: 80px;
+  height: 80px;
   max-width: 1300px;
   align-items: center;
   display: flex;
@@ -72,7 +71,7 @@ export const MagelloNavbar = () => {
                     }
                 </NavbarListItem>
                 <NavbarListItem>
-                    {isAuthenticated ? <span>Signed In <SignOutButton/></span> : <SignInButton/>}
+                    {isAuthenticated ? <SignOutButton/> : <SignInButton/>}
                 </NavbarListItem>
             </NavbarList>
         </NavbarContent>

@@ -6,29 +6,45 @@ import io.ktor.resources.Resource
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
+import io.ktor.server.request.receive
 import io.ktor.server.resources.get
+import io.ktor.server.resources.post
 import io.ktor.server.response.respond
+import io.ktor.server.routing.HttpMethodRouteSelector
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
+import mu.KotlinLogging
 import se.magello.cinode.CinodeClient
 import se.magello.map.EniroAddressLookupClient
 import se.magello.salesforce.SalesForceClient
 import se.magello.workflow.UserDataFetcher
 import se.magello.workflow.MergeUserDataWorkflow
 import se.magello.workflow.JobRunningException
+import se.magello.workflow.MagelloUserPreferences
 
 
 @Serializable
 @Resource("/workplaces")
 data class Workplaces(val limit: Int = 10, val offset: Int = 0) {
     @Serializable
-    @Resource("/workplaces/{organisationId}")
+    @Resource("/{organisationId}")
     data class Workplace(val parent: Workplaces = Workplaces(), val organisationId: String)
 }
 
 @Serializable
 @Resource("/users")
-data class Users(val limit: Int = 10, val offset: Int = 0)
+data class Users(val limit: Int = 10, val offset: Int = 0) {
+    @Serializable
+    @Resource("self")
+    data class Self(val parent: Users = Users()) {
+        @Serializable
+        @Resource("preferences")
+        data class Preferences(val parent: Self = Self())
+    }
+}
 
 @Serializable
 @Resource("/salesforce")
@@ -42,6 +58,7 @@ class SalesForce {
     data class Users(val parent: SalesForce = SalesForce())
 }
 
+private val logger = KotlinLogging.logger {}
 fun Application.configureRouting(config: Config) {
     val cinodeConfig = config.getConfig("cinode")
     val salesForceConfig = config.getConfig("salesforce")
@@ -49,7 +66,7 @@ fun Application.configureRouting(config: Config) {
     val salesForceClient = SalesForceClient(salesForceConfig)
     val client = MergeUserDataWorkflow(UserDataFetcher(cinodeClient, salesForceClient, EniroAddressLookupClient()))
 
-    routing {
+    val routes = routing {
         get<Workplaces.Workplace> {
             try {
                 val message = client.getWorkAssignment(it.organisationId)
@@ -80,6 +97,32 @@ fun Application.configureRouting(config: Config) {
             }
         }
         authenticate("azure-jwt") {
+            get<Users.Self> {
+                when (val principal = call.principal<JWTPrincipal>()) {
+                    null -> call.respond(HttpStatusCode.Unauthorized)
+                    else -> {
+                        when (val message = client.getUserSelf(principal)) {
+                            null -> call.respond(HttpStatusCode.NotFound) // TODO: Return a better response explaining why we cant find the user
+                            else -> call.respond(message)
+                        }
+                    }
+                }
+            }
+            post<Users.Self.Preferences> {
+                when (val principal = call.principal<JWTPrincipal>()) {
+                    null -> call.respond(HttpStatusCode.Unauthorized)
+                    else -> {
+                        val preferences = call.receive<MagelloUserPreferences>()
+                        try {
+                            client.postUserPreferences(principal, preferences)
+                            call.respond(HttpStatusCode.NoContent)
+                        } catch (ie: IllegalStateException) {
+                            logger.info { ie.message }
+                            call.respond(HttpStatusCode.BadRequest)
+                        }
+                    }
+                }
+            }
             get<SalesForce.Versions> {
                 call.respond(salesForceClient.getVersions())
             }
@@ -88,4 +131,14 @@ fun Application.configureRouting(config: Config) {
             }
         }
     }
+
+    val allRoutes = allRoutes(routes)
+    val allRoutesWithMethod = allRoutes.filter { it.selector is HttpMethodRouteSelector }
+    allRoutesWithMethod.forEach {
+        logger.info("route: $it")
+    }
+}
+
+fun allRoutes(root: Route): List<Route> {
+    return listOf(root) + root.children.flatMap { allRoutes(it) }
 }

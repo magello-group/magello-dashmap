@@ -1,10 +1,34 @@
-import React, {useEffect, useState} from 'react';
+import React, {createContext, useEffect, useState} from 'react';
 import './App.css';
 import {Headers} from "./components/Headers";
-import {Router} from "@reach/router";
 import {MapView} from "./components/map/MapView";
 import {ProfilePage} from "./components/profile/ProfilePage";
+import {WhereWeWork} from "./components/companyList/WhereWeWork";
+import {createBrowserRouter, Outlet, RouterProvider} from "react-router-dom";
 import {MagelloWorkAssignment} from "./components/dataTypes/dataTypes";
+
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <Root/>,
+        children: [
+            {
+                path: "profile",
+                element: <ProfilePage/>
+            },
+            {
+                path: "workplaces",
+                element: <WhereWeWork/>
+            },
+            {
+                path: "",
+                element: <MapView/>
+            }
+        ]
+    }
+])
+
+export const WorkplaceContext = createContext<{workplaces: MagelloWorkAssignment[] | null, isLoading: boolean}>({workplaces: [], isLoading: true});
 
 function App() {
     const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -22,22 +46,22 @@ function App() {
                 setIsLoading(false);
             })
         })
-    }, [])
+    }, [setData, setIsLoading])
 
+    return (
+        <WorkplaceContext.Provider value={{workplaces: data, isLoading: isLoading}}>
+            <RouterProvider router={router}/>
+        </WorkplaceContext.Provider>
+    );
+}
+
+function Root() {
     return (
         <>
             <Headers/>
-            <Router>
-                <MapView path="/" data={data} isLoading={isLoading}/>
-                <ProfilePage path="/profile"/>
-                {
-                    /*
-                    <WhereWeWork path="/workplaces" data={data} isLoading={isLoading}/>
-                     */
-                }
-            </Router>
+            <Outlet/>
         </>
-    );
+    )
 }
 
 export default App;

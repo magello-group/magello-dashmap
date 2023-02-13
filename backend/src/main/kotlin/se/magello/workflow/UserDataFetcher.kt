@@ -173,6 +173,30 @@ data class MagelloUser(
 )
 
 @Serializable
+data class MagelloUserSelf(
+    val id: Int,
+    val email: String,
+    val firstName: String,
+    val imageUrl: String?,
+    val lastName: String,
+    val title: String?,
+    val skills: List<MagelloSkill> = emptyList(),
+    val assignment: MagelloWorkAssignment,
+    val preferences: MagelloUserPreferences?
+)
+
+@Serializable
+data class MagelloUserPreferences(
+    val dietPreferences: List<String> = emptyList(),
+    val extraDietPreferences: String?,
+    val socials: List<SocialUrl> = emptyList(),
+    val quote: String?
+)
+
+@Serializable
+data class SocialUrl(val url: String)
+
+@Serializable
 data class StrippedMagelloUser(
     val id: Int,
     val email: String,
@@ -180,6 +204,7 @@ data class StrippedMagelloUser(
     val imageUrl: String?,
     val lastName: String,
     val title: String?,
+    val quote: String?
 )
 
 @Serializable

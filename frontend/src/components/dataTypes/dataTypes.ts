@@ -16,6 +16,18 @@ export interface MagelloUser {
     title?: string
     skills: MagelloSkill[]
     assignment: MagelloWorkAssignment
+    preferences?: MagelloUserPreferences
+}
+
+export interface MagelloUserPreferences {
+    dietPreferences: string[]
+    extraDietPreferences?: string
+    socials: SocialUrl[]
+    quote?: string
+}
+
+export interface SocialUrl {
+    url: string
 }
 
 export interface StrippedMagelloUser {
@@ -25,6 +37,7 @@ export interface StrippedMagelloUser {
     imageUrl?: string
     lastName: string
     title: string
+    quote?: string
 }
 
 export interface MagelloSkill {
