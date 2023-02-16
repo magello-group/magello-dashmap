@@ -10,8 +10,11 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.db.Refresh
+import se.magello.db.Skill
+import se.magello.db.Skills
 import se.magello.db.User
 import se.magello.db.UserPreference
 import se.magello.db.Users
@@ -45,6 +48,42 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
         }
     }
 
+    fun getUserSkillsForSkillId(id: Int): List<MagelloUserSkillWithUserInfo> {
+        return transaction {
+            Skill.findById(id)?.let { skill ->
+                skill.userSkills.map {
+                    MagelloUserSkillWithUserInfo(
+                        id = skill.id.value,
+                        favourite = it.favourite,
+                        masterSynonym = skill.masterSynonym,
+                        synonyms = skill.synonyms?.split(";") ?: emptyList(),
+                        level = it.level,
+                        levelGoal = it.levelGoal,
+                        levelGoalDeadline = it.levelGoalDeadline,
+                        numberOfDaysWorkExperience = it.numberOfDaysWorkExperience,
+                        userId = it.user.id.value,
+                        firstName = it.user.firstName,
+                        lastName = it.user.lastName
+                    )
+                }.sortedByDescending { it.level }
+            } ?: emptyList()
+        }
+    }
+
+    fun searchSkill(search: String): List<MagelloSkill> {
+        return transaction {
+            Skill.find(Skills.synonyms like "%$search%")
+                .map { skill ->
+                    MagelloSkill(
+                        skill.id.value,
+                        skill.masterSynonym,
+                        skill.synonyms?.split(";") ?: emptyList()
+                    )
+                }
+        }
+    }
+
+    // TODO: Move
     fun postUserPreferences(principal: JWTPrincipal, preferences: MagelloUserPreferences) {
         val email = principal.getClaim("email", String::class)
             ?: throw IllegalStateException("This user is not allowed to update preferences")
@@ -67,16 +106,18 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                 userPreferences.extraDietPreferences = preferences.extraDietPreferences
                 userPreferences.socials = preferences.socials.joinToString(";") { socialUrl -> socialUrl.url }
                 userPreferences.quote = preferences.quote
+                user.preferences = userPreferences
             }
         }
     }
 
+    // TODO: Move
     fun getUserSelf(principal: JWTPrincipal): MagelloUserSelf? {
         val email = principal.getClaim("email", String::class) ?: return null
 
         return transaction {
             val user = User.find { Users.email eq email }
-                .with(User::workplace, User::skills, User::preferences)
+                .with(User::workplace, User::userSkills, User::preferences)
                 .singleOrNull()
             if (user != null) {
                 MagelloUserSelf(
@@ -86,16 +127,16 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                     imageUrl = user.imageUrl,
                     lastName = user.lastName,
                     title = user.title,
-                    skills = user.skills.map { skill ->
-                        MagelloSkill(
-                            id = skill.id.value,
-                            favourite = skill.favourite,
-                            masterSynonym = skill.masterSynonym,
-                            synonyms = skill.synonyms?.split(";") ?: emptyList(),
-                            level = skill.level,
-                            levelGoal = skill.levelGoal,
-                            levelGoalDeadline = skill.levelGoalDeadline,
-                            numberOfDaysWorkExperience = skill.numberOfDaysWorkExperience
+                    skills = user.userSkills.map { userSkill ->
+                        MagelloUserSkill(
+                            id = userSkill.skill.id.value,
+                            favourite = userSkill.favourite,
+                            masterSynonym = userSkill.skill.masterSynonym,
+                            synonyms = userSkill.skill.synonyms?.split(";") ?: emptyList(),
+                            level = userSkill.level,
+                            levelGoal = userSkill.levelGoal,
+                            levelGoalDeadline = userSkill.levelGoalDeadline,
+                            numberOfDaysWorkExperience = userSkill.numberOfDaysWorkExperience
                         )
                     },
                     assignment = MagelloWorkAssignment(
@@ -126,7 +167,7 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
         }
         return transaction {
             User.all()
-                .with(User::workplace, User::skills)
+                .with(User::workplace, User::userSkills)
                 .drop(offset)
                 .take(limit)
                 .mapToMagelloUser()
@@ -205,16 +246,16 @@ fun List<User>.mapToMagelloUser() = this.map { user ->
         user.imageUrl,
         user.lastName,
         user.title,
-        user.skills.map { skill ->
-            MagelloSkill(
-                skill.id.value,
-                skill.favourite,
-                skill.masterSynonym,
-                skill.synonyms?.split(";") ?: emptyList(),
-                skill.level,
-                skill.levelGoal,
-                skill.levelGoalDeadline,
-                skill.numberOfDaysWorkExperience
+        user.userSkills.map { userSkill ->
+            MagelloUserSkill(
+                userSkill.skill.id.value,
+                userSkill.favourite,
+                userSkill.skill.masterSynonym,
+                userSkill.skill.synonyms?.split(";") ?: emptyList(),
+                userSkill.level,
+                userSkill.levelGoal,
+                userSkill.levelGoalDeadline,
+                userSkill.numberOfDaysWorkExperience
             )
         },
         MagelloWorkAssignment(

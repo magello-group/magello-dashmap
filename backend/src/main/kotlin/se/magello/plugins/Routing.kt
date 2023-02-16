@@ -58,6 +58,18 @@ class SalesForce {
     data class Users(val parent: SalesForce = SalesForce())
 }
 
+@Serializable
+@Resource("/skill")
+class Skill {
+    @Serializable
+    @Resource("/search")
+    data class Search(val parent: Skill = Skill(), val query: String)
+
+    @Serializable
+    @Resource("/{id}")
+    data class Id(val parent: Skill = Skill(), val id: Int)
+}
+
 private val logger = KotlinLogging.logger {}
 fun Application.configureRouting(config: Config) {
     val cinodeConfig = config.getConfig("cinode")
@@ -122,6 +134,12 @@ fun Application.configureRouting(config: Config) {
                         }
                     }
                 }
+            }
+            get<Skill.Search> {
+                call.respond(client.searchSkill(it.query))
+            }
+            get<Skill.Id> {
+                call.respond(client.getUserSkillsForSkillId(it.id))
             }
             get<SalesForce.Versions> {
                 call.respond(salesForceClient.getVersions())

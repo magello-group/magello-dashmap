@@ -32,7 +32,7 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var imageUrl by Users.imageUrl
     var title by Users.title
 
-    var skills by Skill via UserSkills
+    val userSkills by UserSkill referrersOn UserSkills.user
     var workplace by Workplace referencedOn Users.workplace
     var preferences by UserPreference optionalReferencedOn Users.preferences
 }
@@ -58,37 +58,45 @@ class UserPreference(id: EntityID<String>) : Entity<String>(id) {
 }
 
 /**
- * User skills Table with DAO
+ * Skills Table with DAO
  */
 object Skills : IntIdTable() {
-    val favourite = bool("favourite")
     val masterSynonym = varchar("masterSynonym", 1024).index()
     val synonyms = text("synonyms").nullable()
+}
+class Skill(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<Skill>(Skills)
+    var masterSynonym by Skills.masterSynonym
+    var synonyms by Skills.synonyms
+
+    val userSkills by UserSkill referrersOn UserSkills.skill
+}
+
+/**
+ * UserSkills, maps the user to the skill and the users' score of that skill
+ */
+object UserSkills : IdTable<String>() {
+    override val id = varchar("id", 1024).entityId()
+
+    val favourite = bool("favourite")
     val level = integer("level").nullable()
     val levelGoal = integer("levelGoal").nullable()
     val levelGoalDeadline = varchar("levelGoalDeadline", 1024).nullable()
     val numberOfDaysWorkExperience = integer("numberOfDaysWorkExperience").nullable()
-}
-class Skill(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Skill>(Skills)
-    var favourite by Skills.favourite
-    var masterSynonym by Skills.masterSynonym
-    var synonyms by Skills.synonyms
-    var level by Skills.level
-    var levelGoal by Skills.levelGoal
-    var levelGoalDeadline by Skills.levelGoalDeadline
-    var numberOfDaysWorkExperience by Skills.numberOfDaysWorkExperience
 
-    val users by User via UserSkills
-}
-
-/**
- * User-to-skills mapping
- */
-object UserSkills : Table() {
     val user = reference("user", Users)
     val skill = reference("skill", Skills)
-    override val primaryKey = PrimaryKey(user, skill)
+}
+class UserSkill(id: EntityID<String>) : Entity<String>(id) {
+    companion object: EntityClass<String, UserSkill>(UserSkills)
+    var favourite by UserSkills.favourite
+    var level by UserSkills.level
+    var levelGoal by UserSkills.levelGoal
+    var levelGoalDeadline by UserSkills.levelGoalDeadline
+    var numberOfDaysWorkExperience by UserSkills.numberOfDaysWorkExperience
+
+    var user by User referencedOn UserSkills.user
+    var skill by Skill referencedOn UserSkills.skill
 }
 
 /**

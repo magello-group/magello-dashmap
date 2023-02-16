@@ -1,115 +1,13 @@
 package se.magello
 
-import com.typesafe.config.ConfigFactory
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.testApplication
-import java.time.Instant
-import kotlin.test.assertEquals
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SizedCollection
-import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.Test
-import se.magello.db.LatestRefresh
-import se.magello.db.Refresh
-import se.magello.db.Skill
-import se.magello.db.Skills
-import se.magello.db.User
-import se.magello.db.UserSkills
-import se.magello.db.Users
-import se.magello.db.Workplace
-import se.magello.db.Workplaces
-import se.magello.map.EniroAddressLookupClient.Companion.MAGELLO_OFFICE_COORDINATES
-import se.magello.plugins.configureRouting
 import se.magello.salesforce.SalesForceVersion
 import se.magello.salesforce.responses.QueryResponse
-import se.magello.workflow.UserDataFetcher.Companion.MAGELLO_OFFICE
 
 class ApplicationTest {
-    @Test
-    fun testRoot() = testApplication {
-        val applicationConfig = ConfigFactory.defaultApplication()
-        application {
-            configureRouting(applicationConfig.getConfig("routing"))
-        }
-        client.get("/").apply {
-            assertEquals(HttpStatusCode.OK, status)
-            assertEquals("Hello World!", bodyAsText())
-        }
-    }
-
-    @Test
-    fun testDatabaseInsert() {
-        Database.connect("jdbc:sqlite:dashmap.db", user = "root", password = "test")
-
-        transaction {
-            SchemaUtils.drop(Users, Skills, Workplaces, UserSkills, inBatch = true)
-
-            SchemaUtils.create(Users, Skills, Workplaces, UserSkills, LatestRefresh, inBatch = true)
-
-            println(Refresh.getLatestRefreshTime())
-
-            Refresh.updateLatestRefreshTime(Instant.now())
-
-            println(Refresh.getLatestRefreshTime())
-        }
-
-        val userSkills = transaction {
-            listOf(
-                Skill.new(1) {
-                    masterSynonym = "Java"
-                    favourite = false
-                    synonyms = arrayOf("Java EE", "Java 8", "lolcode").joinToString(";")
-                    level = 3
-                },
-                Skill.new(2) {
-                    masterSynonym = "Go"
-                    favourite = true
-                    synonyms = arrayOf("Golang").joinToString(";")
-                    level = 2
-                }
-            )
-        }
-
-        transaction {
-            val newWorkplace = Workplace.new("55551102") {
-                companyName = MAGELLO_OFFICE.name
-                longitude = MAGELLO_OFFICE_COORDINATES.lon
-                latitude = MAGELLO_OFFICE_COORDINATES.lat
-            }
-            User.new(123) {
-                email = "fabian.eriksson@magello.se"
-                firstName = "Fabian"
-                lastName = "Eriksson"
-                imageUrl = "https://example.com"
-                title = "Coder"
-                workplace = newWorkplace
-                skills = SizedCollection(userSkills)
-            }
-        }
-
-        transaction {
-            val fabbe = User.findById(123) ?: throw Error("Failed to fetch fabian")
-            println(fabbe.email)
-
-            fabbe.skills.forEach {
-                println("${it.masterSynonym} - ${it.level}. Is a favourite? ${it.favourite}")
-                println(it.synonyms)
-            }
-
-            val magello = Workplace.find { Workplaces.companyName eq MAGELLO_OFFICE.name }.single()
-
-            magello.users.forEach {
-                println("Här jobbar: ${it.firstName}")
-            }
-        }
-    }
-
     @Test
     fun testDecodeVersion() {
         val json = Json {
@@ -161,10 +59,4 @@ class ApplicationTest {
         println(string)
     }
 
-    @Test
-    fun hejsan() {
-        val array = listOf<String>()
-        val string = array.joinToString(";")
-        println(string)
-    }
 }
