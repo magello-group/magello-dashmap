@@ -4,26 +4,33 @@ import {SignInButton} from "./SignInButton";
 import {SignOutButton} from "./SignOutButton";
 import styled from "styled-components";
 import {Link} from "react-router-dom";
+import {SkillSearchReactAutocomplete} from "./skillSearch/components/SkillSearchReactAutocomplete";
 
 /**
  * Renders the navbar component with a sign-in button if a user is not authenticated
  */
 export const Headers = (props: any) => {
+    const isAuthenticated = useIsAuthenticated();
     return (
-        <>
-            <Header>
-                <HeaderContents>
-                    <ImageContainer>
-                        <Link to="/">
-                            <MagelloImage decoding="async"
-                                          src="https://magello.se/wp-content/uploads/2022/03/Magello_logo.png"
-                                          alt="" width="273" height="70"/>
-                        </Link>
-                    </ImageContainer>
-                    <MagelloNavbar/>
-                </HeaderContents>
-            </Header>
-        </>
+        <Header>
+            <HeaderContents>
+                <ImageContainer>
+                    <Link to="/">
+                        <MagelloImage decoding="async"
+                                      src="https://magello.se/wp-content/uploads/2022/03/Magello_logo.png"
+                                      alt="" width="273" height="70"/>
+                    </Link>
+                </ImageContainer>
+                <NavbarListItem>
+                    {isAuthenticated &&
+                        <div style={{width: "400px", zIndex: 999}}>
+                            <SkillSearchReactAutocomplete/>
+                        </div>
+                    }
+                </NavbarListItem>
+                <MagelloNavbar/>
+            </HeaderContents>
+        </Header>
     );
 };
 
@@ -62,6 +69,9 @@ export const MagelloNavbar = () => {
     return (
         <NavbarContent>
             <NavbarList>
+                <NavbarListItem>
+                    <NavbarLink to="/">Karta över var vi jobbar</NavbarLink>
+                </NavbarListItem>
                 <NavbarListItem>
                     <NavbarLink to="/workplaces">Var vi jobbar</NavbarLink>
                 </NavbarListItem>

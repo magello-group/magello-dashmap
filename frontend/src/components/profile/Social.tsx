@@ -54,10 +54,10 @@ const SocialPageInput = (props: SocialPageInputProps) => {
 
     return (
         <FormGroup>
-            <SuperSpan theme={{focus: focused}}>
+            <SocialIconSpan theme={{focus: focused}}>
                 <SocialIcon style={{maxHeight: "30px", maxWidth: "30px", pointerEvents: "none"}} url={watch}/>
-            </SuperSpan>
-            <SuperInput type="text" {...props.register(`socials.${props.index}.url` as const)} onFocus={onFocus}
+            </SocialIconSpan>
+            <SocialInput type="text" {...props.register(`socials.${props.index}.url` as const)} onFocus={onFocus}
                         onBlur={onBlur}
                         placeholder={"https://github.com/..."}/>
             <RemoveSpan theme={{focus: focused}} onClick={() => props.remove(props.index)}><IoClose/></RemoveSpan>
@@ -65,7 +65,7 @@ const SocialPageInput = (props: SocialPageInputProps) => {
     )
 }
 
-const SuperInput = styled.input`
+const SocialInput = styled.input`
   width: 100%;
   padding: 12px 20px;
   margin: 8px auto;
@@ -85,7 +85,7 @@ const SuperInput = styled.input`
   }
 `
 
-const SuperSpan = styled.span`
+const SocialIconSpan = styled.span`
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 4px 0 0 4px;
@@ -107,8 +107,17 @@ const RemoveSpan = styled.span`
   margin: 8px auto;
   text-align: center;
   display: flex;
-  justify-items: center;
   align-items: center;
+  pointer-events: all;
+  cursor: pointer;
+
+  :hover {
+    background-color: #f6f6f6;
+    border: 1px #00aeef solid;
+    :active {
+      background-color: #00aeef;
+    }
+  }
 
   ${props => props.theme.focus && 'border: 1px #00aeef solid'}
 `

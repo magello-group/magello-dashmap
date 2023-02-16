@@ -6,6 +6,7 @@ import {ProfilePage} from "./components/profile/ProfilePage";
 import {WhereWeWork} from "./components/companyList/WhereWeWork";
 import {createBrowserRouter, Outlet, RouterProvider} from "react-router-dom";
 import {MagelloWorkAssignment} from "./components/dataTypes/dataTypes";
+import {SkillPage} from "./components/skillSearch/SkillPage";
 
 const router = createBrowserRouter([
     {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
             {
                 path: "workplaces",
                 element: <WhereWeWork/>
+            },
+            {
+                path: "skill/:skillId",
+                element: <SkillPage/>
             },
             {
                 path: "",

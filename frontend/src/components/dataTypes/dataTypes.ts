@@ -14,7 +14,7 @@ export interface MagelloUser {
     imageUrl?: string
     lastName: string
     title?: string
-    skills: MagelloSkill[]
+    skills: MagelloUserSkill[]
     assignment: MagelloWorkAssignment
     preferences?: MagelloUserPreferences
 }
@@ -40,7 +40,7 @@ export interface StrippedMagelloUser {
     quote?: string
 }
 
-export interface MagelloSkill {
+export interface MagelloUserSkill {
     id: number
     favourite?: boolean
     masterSynonym: string
@@ -49,4 +49,24 @@ export interface MagelloSkill {
     levelGoal?: number
     levelGoalDeadline?: string
     numberOfDaysWorkExperience?: number
+}
+
+export interface MagelloUserSkillWithUserInfo {
+    id: number
+    userId: number
+    favourite?: boolean
+    masterSynonym: string
+    synonyms: string[]
+    level?: number
+    levelGoal?: number
+    levelGoalDeadline?: string
+    numberOfDaysWorkExperience?: number
+    firstName: string
+    lastName: string
+}
+
+export interface MagelloSkill {
+    id: number
+    masterSynonym: string
+    synonyms: string[]
 }

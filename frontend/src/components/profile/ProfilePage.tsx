@@ -78,7 +78,7 @@ const ProfileHolder = styled.div`
   align-items: center;
   background-color: #f7f3f3;
   font-weight: 700;
-  height: calc(100vh - 80px);
+  min-height: calc(100vh - 80px);
 `
 
 const ProfileContents = styled.div`
