@@ -3,7 +3,6 @@ package se.magello.workflow
 import java.time.Instant
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.cinode.CinodeClient
 import se.magello.cinode.CinodeSkill
@@ -12,6 +11,7 @@ import se.magello.db.Refresh
 import se.magello.db.Skill
 import se.magello.db.Skills
 import se.magello.db.User
+import se.magello.db.UserSkill
 import se.magello.db.UserSkills
 import se.magello.db.Users
 import se.magello.db.Workplace
@@ -120,21 +120,18 @@ class UserDataFetcher(
     }
 
     private fun saveUserToDatabase(user: MagelloUser) {
-        val userSkills = transaction {
+        val skills = transaction {
             user.skills.map {
-                Skill.findById(it.id) ?: Skill.new(it.id) {
-                    favourite = it.favourite ?: false
+                val skill = Skill.findById(it.id) ?: Skill.new(it.id) {
                     masterSynonym = it.masterSynonym
                     synonyms = it.synonyms.joinToString(";")
-                    level = it.level
-                    levelGoal = it.levelGoal
-                    levelGoalDeadline = it.levelGoalDeadline
-                    numberOfDaysWorkExperience = it.numberOfDaysWorkExperience
                 }
+
+                skill to it
             }
         }
 
-        transaction {
+        val savedUser = transaction {
             val workplace = Workplace.findById(
                 user.assignment.organisationId
             ) ?: Workplace.new(user.assignment.organisationId) {
@@ -150,7 +147,20 @@ class UserDataFetcher(
                 imageUrl = user.imageUrl
                 title = user.title
                 this.workplace = workplace
-                skills = SizedCollection(userSkills)
+            }
+        }
+
+        transaction {
+            skills.map { (skill, magelloSkill) ->
+                UserSkill.findById("${user.id}/${magelloSkill.id}") ?: UserSkill.new("${user.id}/${magelloSkill.id}") {
+                    favourite = magelloSkill.favourite ?: false
+                    level = magelloSkill.level
+                    levelGoal = magelloSkill.levelGoal
+                    levelGoalDeadline = magelloSkill.levelGoalDeadline
+                    numberOfDaysWorkExperience = magelloSkill.numberOfDaysWorkExperience
+                    this.skill = skill
+                    this.user = savedUser
+                }
             }
         }
     }
@@ -168,7 +178,7 @@ data class MagelloUser(
     val imageUrl: String?,
     val lastName: String,
     val title: String?,
-    val skills: List<MagelloSkill> = emptyList(),
+    val skills: List<MagelloUserSkill> = emptyList(),
     val assignment: MagelloWorkAssignment
 )
 
@@ -180,7 +190,7 @@ data class MagelloUserSelf(
     val imageUrl: String?,
     val lastName: String,
     val title: String?,
-    val skills: List<MagelloSkill> = emptyList(),
+    val skills: List<MagelloUserSkill> = emptyList(),
     val assignment: MagelloWorkAssignment,
     val preferences: MagelloUserPreferences?
 )
@@ -208,7 +218,22 @@ data class StrippedMagelloUser(
 )
 
 @Serializable
-data class MagelloSkill(
+data class MagelloUserSkillWithUserInfo(
+    val id: Int,
+    val favourite: Boolean?,
+    val masterSynonym: String,
+    val synonyms: List<String>,
+    val level: Int?,
+    val levelGoal: Int?,
+    val levelGoalDeadline: String?,
+    val numberOfDaysWorkExperience: Int?,
+    val userId: Int,
+    val firstName: String,
+    val lastName: String,
+)
+
+@Serializable
+data class MagelloUserSkill(
     val id: Int,
     val favourite: Boolean?,
     val masterSynonym: String,
@@ -219,8 +244,15 @@ data class MagelloSkill(
     val numberOfDaysWorkExperience: Int?,
 )
 
+@Serializable
+data class MagelloSkill(
+    val id: Int,
+    val masterSynonym: String,
+    val synonyms: List<String>,
+)
+
 fun List<CinodeSkill>.toMagelloSkills() = this.map {
-    MagelloSkill(
+    MagelloUserSkill(
         it.id,
         it.favourite,
         it.keyword?.masterSynonym ?: "Unknown skill",

@@ -2,17 +2,6 @@ import React from "react";
 import {StrippedMagelloUser} from "../dataTypes/dataTypes";
 import styled from "styled-components";
 
-const quotes = [
-    "Jag gillar att inte behöva jobba!",
-    "Jag är 25 år gammal",
-    "Hej! Jag kan flyga!",
-    "Visste du att valar är det största däggdjuret som någonsin funnits på vår jord!",
-    "Jag har ätit pannkaka!",
-    "Man kan ju göra så... Men det är ju inte rätt!",
-    "Blanda inte in mig i vårt förhållande!",
-    "T-röd, för dig som tänkt klart"
-]
-
 export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
     return (
         <Content>

@@ -20,6 +20,16 @@ export const WeWorkHerePage = ({currentWorkplace}: { currentWorkplace: MagelloWo
 }
 
 const WorkDisplayArea = styled.div`
+  position: absolute;
+  // To hide the map attribution when clicked
+  z-index: 1000;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  top: calc(50vh);
+  margin-left: auto;
+  margin-right: auto;
+  left: 0;
+  right: 0;
   padding: 2% 6%;
   box-sizing: border-box;
   transition: background .3s, border .3s, border-radius .3s, box-shadow .3s;
