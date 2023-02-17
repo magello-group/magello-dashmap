@@ -23,14 +23,15 @@ export const MapView = () => {
         </StyledMapContainer>)
     }, [currentWorkplace, data, isLoading]);
 
+    useEffect(() => {
+        console.log("currentWorkplace:", currentWorkplace)
+    }, [currentWorkplace])
+
     return (
         <>
-            {currentWorkplace && <MapHolderExpanded>
+            <MapHolderFullscreen style={currentWorkplace ? {height: "calc(55vh - 80px)"} : undefined}>
                 {mapContent()}
-            </MapHolderExpanded>}
-            {!currentWorkplace && <MapHolderFullscreen>
-                {mapContent()}
-            </MapHolderFullscreen>}
+            </MapHolderFullscreen>
             {currentWorkplace && <WeWorkHerePage currentWorkplace={currentWorkplace}/>}
         </>
     )
@@ -48,12 +49,16 @@ const Workplaces = ({
             popupopen: (event: PopupEvent) => {
                 const latLng = event.popup.getLatLng();
                 if (latLng) {
-                    // Should we zoom in closer?
-                    map.flyTo(latLng, map.getZoom(), {
-                        duration: 1.0,
-                        animate: true,
-                        easeLinearity: 0.25
-                    });
+                    // Call `invalidateSize` when we know we have set the size of the workplace area and then use flyTo.
+                    setTimeout(() => {
+                        map.invalidateSize(true);
+                        // Should we zoom in closer?
+                        map.flyTo(latLng, map.getZoom(), {
+                            duration: 1.0,
+                            animate: true,
+                            easeLinearity: 0.25,
+                        });
+                    }, 100)
                 }
                 const workplace = data.find((workplace) => {
                     return event.popup.getContent() === workplace.companyName
@@ -61,6 +66,13 @@ const Workplaces = ({
                 if (workplace) {
                     setCurrentWorkplace(workplace);
                 }
+            },
+            popupclose: () => {
+                setCurrentWorkplace(null);
+
+                setTimeout(() => {
+                    map.invalidateSize(true);
+                }, 100)
             }
         })
     }, [data, map, setCurrentWorkplace])
@@ -121,7 +133,7 @@ const MapHolderExpanded = styled.div`
 `
 
 const MapHolderFullscreen = styled.div`
-  min-height: calc(100vh - 80px);
+  height: calc(100vh - 80px);
   ${baseMapHolder}
 `
 
