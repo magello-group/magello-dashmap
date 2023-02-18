@@ -7928,6 +7928,12 @@ react-scripts@5.0.1:
   version "0.0.0"
   uid ""
 
+"react-search-autocomplete@link:../react-search-autocomplete/":
+  version "8.3.1"
+  dependencies:
+    fuse.js "^6.5.3"
+    styled-components "^5.3.3"
+
 react-select@^5.7.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/react-select/-/react-select-5.7.0.tgz#82921b38f1fcf1471a0b62304da01f2896cd8ce6"

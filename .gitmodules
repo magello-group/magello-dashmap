@@ -1,0 +1,3 @@
+[submodule "react-search-autocomplete"]
+	path = react-search-autocomplete
+	url = https://github.com/magello-group/react-search-autocomplete
