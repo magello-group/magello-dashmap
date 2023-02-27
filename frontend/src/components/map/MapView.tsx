@@ -53,7 +53,7 @@ const Workplaces = ({
                     setTimeout(() => {
                         map.invalidateSize(true);
                         // Should we zoom in closer?
-                        map.flyTo(latLng, map.getZoom(), {
+                        map.flyTo(latLng, 11.5, {
                             duration: 1.0,
                             animate: true,
                             easeLinearity: 0.25,

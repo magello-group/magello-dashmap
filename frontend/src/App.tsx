@@ -7,6 +7,21 @@ import {WhereWeWork} from "./components/companyList/WhereWeWork";
 import {createBrowserRouter, Outlet, RouterProvider} from "react-router-dom";
 import {MagelloWorkAssignment} from "./components/dataTypes/dataTypes";
 import {SkillPage} from "./components/skillSearch/SkillPage";
+import {createGlobalStyle} from "styled-components";
+
+const GlobalStyle = createGlobalStyle`
+:root {
+  --magello-color-blue: #00aeef;
+  --magello-color-red: #ed1a3b;
+  --magello-color-yellow: #fd0;
+  --magello-color-green: #00a65d;
+  --magello-color-orange: #fdb913;
+  --magello-color-magenta: #ec008c;
+
+  --toastify-color-error: var(--magello-color-red);
+  --toastify-color-success: var(--magello-color-green);
+}
+`
 
 const router = createBrowserRouter([
     {
@@ -15,6 +30,10 @@ const router = createBrowserRouter([
         children: [
             {
                 path: "profile",
+                element: <ProfilePage/>
+            },
+            {
+                path: "profile/:profileId",
                 element: <ProfilePage/>
             },
             {
@@ -63,6 +82,7 @@ function App() {
 function Root() {
     return (
         <>
+            <GlobalStyle/>
             <Headers/>
             <Outlet/>
         </>

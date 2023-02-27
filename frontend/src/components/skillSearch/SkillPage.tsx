@@ -1,8 +1,8 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {loginRequest} from "../../authConfig";
 import {AuthenticationResult} from "@azure/msal-browser";
-import {useMsal} from "@azure/msal-react";
-import {useParams} from "react-router-dom";
+import {AuthenticatedTemplate, useMsal} from "@azure/msal-react";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import styled from "styled-components";
 import {MagelloUserSkillWithUserInfo} from "../dataTypes/dataTypes";
 import {useFlexLayout, useSortBy, useTable} from "react-table"
@@ -69,16 +69,19 @@ export const SkillPage = () => {
     const data = useMemo(() => userSkills ? userSkills : [], [userSkills])
 
     return (
-        <SkillDisplayArea>
-            <SkillArea>
-                <SkillName>{skillName}</SkillName>
-                {userSkills && <SkillTable skills={data} columns={columns}/>}
-            </SkillArea>
-        </SkillDisplayArea>
+        <AuthenticatedTemplate>
+            <SkillDisplayArea>
+                <SkillArea>
+                    <SkillName>{skillName}</SkillName>
+                    {userSkills && <SkillTable skills={data} columns={columns}/>}
+                </SkillArea>
+            </SkillDisplayArea>
+        </AuthenticatedTemplate>
     )
 }
 
-const SkillTable = ({skills, columns}: { skills: MagelloUserSkillWithUserInfo[], columns: any }) => {
+export const SkillTable = ({skills, columns}: { skills: MagelloUserSkillWithUserInfo[], columns: any }) => {
+    const navigate = useNavigate()
     const {
         getTableProps,
         getTableBodyProps,
@@ -122,7 +125,7 @@ const SkillTable = ({skills, columns}: { skills: MagelloUserSkillWithUserInfo[],
                 {rows.map((row, i) => {
                     prepareRow(row)
                     return (
-                        <tr {...row.getRowProps()}>
+                        <tr onClick={() => {navigate(`/profile/${row.original.userId}`)}} {...row.getRowProps()}>
                             {row.cells.map(cell => {
                                 return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
                             })}
@@ -164,7 +167,7 @@ const SkillName = styled.div`
   font-weight: 700;
 `
 
-const TableStyles = styled.div`
+export const TableStyles = styled.div`
   max-width: 100%;
   display: block;
   padding: 1rem;
@@ -174,6 +177,20 @@ const TableStyles = styled.div`
     border: 1px solid #ccc;
     border-radius: 4px;
     font-family: "Roboto", "sans-serif";
+
+    tbody {
+      tr {
+        cursor: pointer;
+        pointer-events: all;
+
+        :hover {
+          background-color: #ccc;
+        }
+        :active {
+          background-color: #9f9f9f;
+        }
+      }
+    }
 
     tr {
       :last-child {
@@ -189,6 +206,7 @@ const TableStyles = styled.div`
       padding: 0.5rem;
       border-bottom: 1px solid #ccc;
       border-right: 1px solid #ccc;
+      font-weight: 400;
 
       :last-child {
         border-right: 0;
@@ -197,6 +215,7 @@ const TableStyles = styled.div`
 
     th {
       div {
+        font-weight: 700;
         display: flex;
         flex-direction: row;
         justify-content: space-between;

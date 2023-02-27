@@ -14,10 +14,10 @@ export interface FoodPreferencesProps {
 export const FoodPreferences = ({register, control}: FoodPreferencesProps) => {
     return (
         <>
-            <FormLabel>Dietära preferenser
+            <FormLabel>Matpreferenser och allergier
                 <DietaryMultiSelect control={control}/>
             </FormLabel>
-            <FormLabel>Övriga dietära preferenser
+            <FormLabel>Övriga matpreferenser och allergier
                 <FormInput type="text" {...register("extraDietPreferences")} placeholder={"Jag äter inte sjögräs..."}/>
             </FormLabel>
         </>
@@ -43,7 +43,7 @@ const DietaryMultiSelect = ({control}: DietaryMultiSelectProps) => {
                             onChange={onChange}
                             onBlur={onBlur}
                             getOptionLabel={(diet: Diet) => diet.label}
-                            getOptionValue={(diet: Diet) => diet.value}
+                            getOptionValue={(diet: Diet) => diet.label}
                             components={animatedComponents}
                             isMulti={true}
                             backspaceRemovesValue={true}
