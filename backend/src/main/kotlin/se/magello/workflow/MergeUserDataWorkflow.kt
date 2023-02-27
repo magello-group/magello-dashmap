@@ -25,7 +25,7 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
             val updatedAt = transaction {
                 Refresh.getLatestRefreshTime()
             }
-            if (Duration.between(updatedAt, Instant.now()) > Duration.ofDays(100)) {
+            if (Duration.between(updatedAt, Instant.now()) > Duration.ofDays(1)) {
                 runBlocking {
                     job = launch {
                         try {
@@ -46,30 +46,36 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
 }
 
 fun List<User>.mapToMagelloUser() = this.map { user ->
-    MagelloUser(
-        user.id.value,
-        user.email,
-        user.firstName,
-        user.imageUrl,
-        user.lastName,
-        user.title,
-        user.userSkills.map { userSkill ->
+    PublicMagelloUser(
+        id = user.id.value,
+        email = user.email,
+        firstName = user.firstName,
+        imageUrl = user.imageUrl,
+        lastName = user.lastName,
+        title = user.title,
+        skills = user.userSkills.map { userSkill ->
             MagelloUserSkill(
-                userSkill.skill.id.value,
-                userSkill.favourite,
-                userSkill.skill.masterSynonym,
-                userSkill.skill.synonyms?.split(";") ?: emptyList(),
-                userSkill.level,
-                userSkill.levelGoal,
-                userSkill.levelGoalDeadline,
-                userSkill.numberOfDaysWorkExperience
+                id = userSkill.skill.id.value,
+                favourite = userSkill.favourite,
+                masterSynonym = userSkill.skill.masterSynonym,
+                synonyms = userSkill.skill.synonyms?.split(";") ?: emptyList(),
+                level = userSkill.level,
+                levelGoal = userSkill.levelGoal,
+                levelGoalDeadline = userSkill.levelGoalDeadline,
+                numberOfDaysWorkExperience = userSkill.numberOfDaysWorkExperience
             )
         },
-        MagelloWorkAssignment(
-            user.workplace.id.value,
-            user.workplace.companyName,
-            user.workplace.longitude,
-            user.workplace.latitude
-        )
+        assignment = MagelloWorkAssignment(
+            organisationId = user.workplace.id.value,
+            companyName = user.workplace.companyName,
+            longitude = user.workplace.longitude,
+            latitude = user.workplace.latitude
+        ),
+        preferences = user.preferences?.let {
+            MagelloUserPublicPreferences(
+                socials = it.socials.split(";").map { url -> SocialUrl(url) },
+                quote = it.quote
+            )
+        }
     )
 }

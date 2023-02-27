@@ -75,7 +75,7 @@ class UserDataFetcher(
         }
     }
 
-    private suspend fun combineUserWithExtras(cinodeUser: CinodeUser, agreement: RecordType.Agreement): MagelloUser {
+    private suspend fun combineUserWithExtras(cinodeUser: CinodeUser, agreement: RecordType.Agreement): PublicMagelloUser {
         val skills = cinodeClient.getSkillsForUser(cinodeUser.companyUserId)
             .toMagelloSkills()
 
@@ -100,7 +100,7 @@ class UserDataFetcher(
         }
 
 
-        return MagelloUser(
+        return PublicMagelloUser(
             id = cinodeUser.companyUserId,
             email = cinodeUser.companyUserEmail ?: "unknown@magello.se",
             firstName = cinodeUser.firstName,
@@ -108,7 +108,8 @@ class UserDataFetcher(
             lastName = cinodeUser.lastName,
             title = cinodeUser.title,
             skills = skills,
-            assignment = workAssignment
+            assignment = workAssignment,
+            preferences = null
         )
     }
 
@@ -119,7 +120,7 @@ class UserDataFetcher(
         }
     }
 
-    private fun saveUserToDatabase(user: MagelloUser) {
+    private fun saveUserToDatabase(user: PublicMagelloUser) {
         val skills = transaction {
             user.skills.map {
                 val skill = Skill.findById(it.id) ?: Skill.new(it.id) {
@@ -171,7 +172,38 @@ class UserDataFetcher(
 }
 
 @Serializable
-data class MagelloUser(
+data class ExportMagelloUser(
+    val email: String,
+    val firstName: String,
+    val lastName: String,
+    val dietPreferences: List<String> = emptyList(),
+    val extraDietPreferences: String?,
+)
+
+fun List<ExportMagelloUser>.csvFormat(): List<List<Any?>> {
+    val allPreferences = this.map {
+        listOf(
+            it.email,
+            it.firstName,
+            it.lastName,
+            it.dietPreferences.joinToString("\r\n"),
+            it.extraDietPreferences
+        )
+    }.toMutableList()
+    allPreferences.add(
+        0, listOf(
+            "Email",
+            "Förnamn",
+            "Efternamn",
+            "Matpreferenser",
+            "Andra matpreferenser"
+        )
+    )
+    return allPreferences
+}
+
+@Serializable
+data class PublicMagelloUser(
     val id: Int,
     val email: String,
     val firstName: String,
@@ -179,7 +211,14 @@ data class MagelloUser(
     val lastName: String,
     val title: String?,
     val skills: List<MagelloUserSkill> = emptyList(),
-    val assignment: MagelloWorkAssignment
+    val assignment: MagelloWorkAssignment,
+    val preferences: MagelloUserPublicPreferences?
+)
+
+@Serializable
+data class MagelloUserPublicPreferences(
+    val socials: List<SocialUrl> = emptyList(),
+    val quote: String?
 )
 
 @Serializable
@@ -189,6 +228,7 @@ data class MagelloUserSelf(
     val firstName: String,
     val imageUrl: String?,
     val lastName: String,
+    val isAdmin: Boolean = false,
     val title: String?,
     val skills: List<MagelloUserSkill> = emptyList(),
     val assignment: MagelloWorkAssignment,
@@ -214,7 +254,8 @@ data class StrippedMagelloUser(
     val imageUrl: String?,
     val lastName: String,
     val title: String?,
-    val quote: String?
+    val quote: String?,
+    val userSkills: List<MagelloUserSkill>
 )
 
 @Serializable

@@ -1,17 +1,16 @@
 package se.magello.plugins
 
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.typesafe.config.Config
-import io.ktor.http.HttpStatusCode
-import io.ktor.resources.Resource
-import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import io.ktor.server.request.receive
-import io.ktor.server.resources.get
+import io.ktor.http.*
+import io.ktor.resources.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.resources.*
 import io.ktor.server.resources.post
-import io.ktor.server.response.respond
+import io.ktor.server.response.*
 import io.ktor.server.routing.HttpMethodRouteSelector
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.routing
@@ -23,10 +22,7 @@ import se.magello.db.repositories.UserRepository
 import se.magello.db.repositories.WorkAssignmentRepository
 import se.magello.map.EniroAddressLookupClient
 import se.magello.salesforce.SalesForceClient
-import se.magello.workflow.UserDataFetcher
-import se.magello.workflow.MergeUserDataWorkflow
-import se.magello.workflow.JobRunningException
-import se.magello.workflow.MagelloUserPreferences
+import se.magello.workflow.*
 
 
 @Serializable
@@ -47,6 +43,14 @@ data class Users(val limit: Int = 10, val offset: Int = 0) {
         @Resource("preferences")
         data class Preferences(val parent: Self = Self())
     }
+
+    @Serializable
+    @Resource("/{userId}")
+    data class Id(val parent: Users = Users(), val userId: Int)
+
+    @Serializable
+    @Resource("foodpreferences/export")
+    data class ExportFoodPreferences(val parent: Users = Users())
 }
 
 @Serializable
@@ -109,6 +113,18 @@ fun Application.configureRouting(config: Config) {
                     call.respond(HttpStatusCode.ServiceUnavailable)
                 }
             }
+            get<Users.Id> {
+                try {
+                    userRepository.getUser(it.userId)?.let { user ->
+                        call.respond(user)
+                    } ?: run {
+                        call.respond(HttpStatusCode.NotFound)
+                    }
+                } catch (je: JobRunningException) {
+                    // TODO: Make it so we don't have to copy this
+                    call.respond(HttpStatusCode.ServiceUnavailable)
+                }
+            }
             get<Users.Self> {
                 when (val principal = call.principal<JWTPrincipal>()) {
                     null -> call.respond(HttpStatusCode.Unauthorized)
@@ -135,6 +151,18 @@ fun Application.configureRouting(config: Config) {
                         }
                     }
                 }
+            }
+            get<Users.ExportFoodPreferences> {
+                call.principal<JWTPrincipal>()?.let {
+                    if (it.isAdmin()) {
+                        val rows = userRepository.getAllUserPreferences().csvFormat()
+                        call.respondOutputStream(ContentType.Text.CSV) {
+                            csvWriter().writeAll(rows, this)
+                        }
+                    } else {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
+                } ?: call.respond(HttpStatusCode.Unauthorized)
             }
             get<Skill.Search> {
                 call.respond(skillRepository.searchSkill(it.query))

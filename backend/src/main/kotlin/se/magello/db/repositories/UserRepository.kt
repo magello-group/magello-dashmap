@@ -1,20 +1,14 @@
 package se.magello.db.repositories
 
-import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.*
+import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.db.User
 import se.magello.db.UserPreference
 import se.magello.db.Users
-import se.magello.workflow.JobRunningException
-import se.magello.workflow.MagelloUser
-import se.magello.workflow.MagelloUserPreferences
-import se.magello.workflow.MagelloUserSelf
-import se.magello.workflow.MagelloUserSkill
-import se.magello.workflow.MagelloWorkAssignment
-import se.magello.workflow.MergeUserDataWorkflow
-import se.magello.workflow.SocialUrl
-import se.magello.workflow.mapToMagelloUser
+import se.magello.plugins.isAdmin
+import se.magello.workflow.*
 
 class UserRepository(private val workflow: MergeUserDataWorkflow) {
     fun postUserPreferences(principal: JWTPrincipal, preferences: MagelloUserPreferences) {
@@ -58,6 +52,7 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
                     firstName = user.firstName,
                     imageUrl = user.imageUrl,
                     lastName = user.lastName,
+                    isAdmin = principal.isAdmin(),
                     title = user.title,
                     skills = user.userSkills.map { userSkill ->
                         MagelloUserSkill(
@@ -79,10 +74,10 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
                     ),
                     preferences = user.preferences?.let {
                         MagelloUserPreferences(
-                            it.dietPreferences.split(";"),
-                            it.extraDietPreferences,
-                            it.socials.split(";").map { url -> SocialUrl(url) },
-                            it.quote
+                            dietPreferences = it.dietPreferences.split(";"),
+                            extraDietPreferences = it.extraDietPreferences,
+                            socials = it.socials.split(";").map { url -> SocialUrl(url) },
+                            quote = it.quote
                         )
                     }
                 )
@@ -92,7 +87,71 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
         }
     }
 
-    fun getAllUsers(limit: Int, offset: Int): List<MagelloUser> {
+    fun getUser(userId: Int): PublicMagelloUser? {
+        if (workflow.isJobRunning()) {
+            throw JobRunningException("Job is currently running")
+        }
+        return transaction {
+            User.findById(userId)
+                ?.load(User::workplace, User::userSkills, User::preferences)
+                ?.let { user ->
+                    PublicMagelloUser(
+                        id = user.id.value,
+                        email = user.email,
+                        firstName = user.firstName,
+                        imageUrl = user.imageUrl,
+                        lastName = user.lastName,
+                        title = user.title,
+                        skills = user.userSkills.map { userSkill ->
+                            MagelloUserSkill(
+                                id = userSkill.skill.id.value,
+                                favourite = userSkill.favourite,
+                                masterSynonym = userSkill.skill.masterSynonym,
+                                synonyms = userSkill.skill.synonyms?.split(";") ?: emptyList(),
+                                level = userSkill.level,
+                                levelGoal = userSkill.levelGoal,
+                                levelGoalDeadline = userSkill.levelGoalDeadline,
+                                numberOfDaysWorkExperience = userSkill.numberOfDaysWorkExperience
+                            )
+                        },
+                        assignment = MagelloWorkAssignment(
+                            organisationId = user.workplace.id.value,
+                            companyName = user.workplace.companyName,
+                            longitude = user.workplace.longitude,
+                            latitude = user.workplace.latitude,
+                        ),
+                        preferences = user.preferences?.let {
+                            MagelloUserPublicPreferences(
+                                socials = it.socials.split(";").map { url -> SocialUrl(url) },
+                                quote = it.quote
+                            )
+                        }
+                    )
+                }
+        }
+    }
+
+    fun getAllUserPreferences(): List<ExportMagelloUser> {
+        if (workflow.isJobRunning()) {
+            throw JobRunningException("Job is currently running")
+        }
+
+        return transaction {
+            User.all()
+                .with(User::preferences)
+                .map { user ->
+                    ExportMagelloUser(
+                        email = user.email,
+                        firstName = user.firstName,
+                        lastName = user.lastName,
+                        dietPreferences = user.preferences?.dietPreferences?.split(";") ?: emptyList(),
+                        extraDietPreferences = user.preferences?.extraDietPreferences
+                    )
+                }
+        }
+    }
+
+    fun getAllUsers(limit: Int, offset: Int): List<PublicMagelloUser> {
         if (workflow.isJobRunning()) {
             throw JobRunningException("Job is currently running")
         }
