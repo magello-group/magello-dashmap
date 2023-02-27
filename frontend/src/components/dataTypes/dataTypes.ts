@@ -7,12 +7,30 @@ export interface MagelloWorkAssignment {
 
 }
 
+export interface PublicMagelloUser {
+    id: number
+    email: string
+    firstName: string
+    imageUrl?: string
+    lastName: string
+    title?: string
+    skills: MagelloUserSkill[]
+    assignment: MagelloWorkAssignment
+    preferences?: PublicMagelloUserPreferences
+}
+
+export interface PublicMagelloUserPreferences {
+    socials: SocialUrl[]
+    quote?: string
+}
+
 export interface MagelloUser {
     id: number
     email: string
     firstName: string
     imageUrl?: string
     lastName: string
+    isAdmin: boolean
     title?: string
     skills: MagelloUserSkill[]
     assignment: MagelloWorkAssignment
@@ -38,6 +56,7 @@ export interface StrippedMagelloUser {
     lastName: string
     title: string
     quote?: string
+    userSkills: MagelloUserSkill[]
 }
 
 export interface MagelloUserSkill {

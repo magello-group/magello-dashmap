@@ -45,3 +45,12 @@ private fun JWTCredential.getListClaimOrEmpty(name: String): List<String> = try 
 } catch (e: NullPointerException) {
     emptyList()
 }
+
+// Ground control
+private const val ADMIN_GROUP = "7941ea19-db89-4329-bf4b-f2c51dd32618"
+fun JWTPrincipal.isAdmin(): Boolean = try {
+    val groups = getListClaim("groups", String::class)
+    groups.contains(ADMIN_GROUP)
+} catch (e: NullPointerException) {
+    false
+}

@@ -72,9 +72,11 @@ export const MagelloNavbar = () => {
                 <NavbarListItem>
                     <NavbarLink to="/">Karta över var vi jobbar</NavbarLink>
                 </NavbarListItem>
+                {/* Vet inte vad jag ska göra med denna sida
                 <NavbarListItem>
                     <NavbarLink to="/workplaces">Var vi jobbar</NavbarLink>
                 </NavbarListItem>
+                 */}
                 <NavbarListItem>
                     {isAuthenticated &&
                         <NavbarLink to="/profile">Din profil</NavbarLink>

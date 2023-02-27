@@ -40,7 +40,7 @@ interface SocialPageInputProps {
     remove: UseFieldArrayRemove
 }
 
-const SocialPageInput = (props: SocialPageInputProps) => {
+export const SocialPageInput = (props: SocialPageInputProps) => {
     const [focused, setFocused] = useState<boolean>(false)
 
     const onFocus = useCallback(() => {

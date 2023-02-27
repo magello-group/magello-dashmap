@@ -8,18 +8,18 @@ export interface MagelloFormPreferences {
 }
 
 export interface Diet {
-    value: string,
+    value: number,
     label: string,
 }
 
 export const options: Diet[] = [
-    {value: 'nuts', label: 'Nötallergi'},
-    {value: 'vegan', label: 'Vegansk diet'},
-    {value: 'vegetarian', label: 'Vegetarisk diet'},
-    {value: 'eggs', label: 'Äggfri'},
-    {value: 'lactose', label: 'Laktosfri'},
-    {value: 'gluten', label: 'Glutenfri'},
-    {value: 'pork', label: 'Fläskfri'},
-    {value: 'fish', label: 'Fiskfri'},
+    {value: 0, label: 'Nötallergi'},
+    {value: 1, label: 'Veganskt'},
+    {value: 2, label: 'Vegetariskt'},
+    {value: 3, label: 'Äggfri'},
+    {value: 4, label: 'Laktosfri'},
+    {value: 5, label: 'Glutenfri'},
+    {value: 6, label: 'Fläskfri'},
+    {value: 7, label: 'Fiskfri'},
 ];
 

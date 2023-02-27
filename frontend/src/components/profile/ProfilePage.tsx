@@ -2,14 +2,21 @@ import React, {useEffect, useState} from 'react';
 import {AuthenticatedTemplate, UnauthenticatedTemplate, useMsal} from "@azure/msal-react";
 import {loginRequest} from "../../authConfig";
 import {AuthenticationResult} from "@azure/msal-browser";
-import {MagelloUser} from "../dataTypes/dataTypes";
+import {MagelloUser, PublicMagelloUser} from "../dataTypes/dataTypes";
 import styled from "styled-components";
 import {ProfileForm} from "./ProfileForm";
+import {WorkerImageCard} from "../map/WorkerImageCard";
+import {AdminArea} from "./AdminArea";
+import {useParams} from "react-router-dom";
+import {ProfileContent} from "./ProfileContent";
 
 export const ProfilePage = (props: any) => {
-    let {instance, accounts} = useMsal();
+    const {instance, accounts} = useMsal();
+    // TODO: Use profileId to fetch user, otherwise show form for Self
+    const {profileId} = useParams();
     const [isLoading, setIsLoading] = useState<boolean>(true)
-    const [data, setData] = useState<MagelloUser | null>(null)
+    const [magelloUser, setMagelloUser] = useState<MagelloUser | null>(null)
+    const [publicMagelloUser, setPublicMagelloUser] = useState<PublicMagelloUser | null>(null)
     const [token, setToken] = useState<string | null>(null)
 
     useEffect(() => {
@@ -33,34 +40,61 @@ export const ProfilePage = (props: any) => {
             return
         }
 
-        fetch("http://localhost:8080/users/self", {
-            method: 'GET',
-            headers: {
-                "Accept": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        }).then((response) => {
-            response.json().then((body) => {
-                setData(body);
-                setIsLoading(false);
-            })
-        })
-    }, [token])
+        if (profileId) {
+            fetch(`http://localhost:8080/users/${profileId}`, {
+                method: 'GET',
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            }).then((response) => {
+                response.json().then((body) => {
+                    setPublicMagelloUser(body);
+                    setIsLoading(false);
+                })
+            });
+        } else {
+            fetch("http://localhost:8080/users/self", {
+                method: 'GET',
+                headers: {
+                    "Accept": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            }).then((response) => {
+                response.json().then((body) => {
+                    setMagelloUser(body);
+                    setIsLoading(false);
+                })
+            });
+        }
+    }, [token, profileId])
 
     return (
         <ProfileHolder>
             <ProfileContents>
                 <AuthenticatedTemplate>
                     {
-                        data && <>
-                            <ImageContainer>
-                                <Image src={data.imageUrl}/>
-                            </ImageContainer>
-                            <ProfileForm userData={data} token={token}/>
-                        </>
-                    }
-                    {
-                        // TODO: write this
+                        profileId
+                            ? (
+                                publicMagelloUser && <>
+                                    <ImageContainer>
+                                        <WorkerImageCard imageUrl={publicMagelloUser.imageUrl}/>
+                                    </ImageContainer>
+                                    <AreaContent>
+                                        <ProfileContent userData={publicMagelloUser}/>
+                                    </AreaContent>
+                                </>
+                            ) : (
+                                magelloUser && <>
+                                    <ImageContainer>
+                                        <WorkerImageCard imageUrl={magelloUser.imageUrl}/>
+                                    </ImageContainer>
+                                    <AreaContent>
+                                        <ProfileForm userData={magelloUser} token={token}/>
+                                        {magelloUser.isAdmin && <AdminArea token={token}/>}
+                                    </AreaContent>
+                                </>
+                            )
                     }
                 </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
@@ -73,9 +107,13 @@ export const ProfilePage = (props: any) => {
     );
 }
 
+const AreaContent = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
 const ProfileHolder = styled.div`
   display: flex;
-  align-items: center;
   background-color: #f7f3f3;
   font-weight: 700;
   min-height: calc(100vh - 80px);
@@ -107,14 +145,4 @@ const ImageContainer = styled.div`
   width: 200px;
   border-radius: 50%;
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-`
-
-const Image = styled.img`
-  overflow: hidden;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  margin-bottom: 5px;
 `

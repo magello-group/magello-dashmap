@@ -50,6 +50,8 @@ dependencies {
 
   implementation("io.github.microutils:kotlin-logging:2.1.23")
 
+  implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.8.0")
+
   // cache
   implementation("com.sksamuel.aedile:aedile-core:1.1.2")
   implementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
