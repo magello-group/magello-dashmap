@@ -4,9 +4,9 @@ import io.ktor.server.auth.jwt.*
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
-import se.magello.db.User
-import se.magello.db.UserPreference
-import se.magello.db.Users
+import se.magello.db.tables.User
+import se.magello.db.tables.UserPreference
+import se.magello.db.tables.Users
 import se.magello.plugins.isAdmin
 import se.magello.workflow.*
 

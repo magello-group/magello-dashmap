@@ -42,7 +42,7 @@ export const ProfileForm = ({userData, token}: { userData: MagelloUser, token: s
             body: JSON.stringify(dataToSend)
         }
 
-        fetch("http://localhost:8080/users/self/preferences", requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/self/preferences`, requestOptions)
             .then((request) => {
                 if (request.status === 204) {
                     toast.success("Ändringarna har sparats!", {
@@ -83,18 +83,6 @@ export const ProfileForm = ({userData, token}: { userData: MagelloUser, token: s
             <FormLabel>
                 <FormButton type="submit" value="Spara"/>
             </FormLabel>
-            <ToastContainer
-                position="bottom-center"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-            />
         </Form>
     )
 }

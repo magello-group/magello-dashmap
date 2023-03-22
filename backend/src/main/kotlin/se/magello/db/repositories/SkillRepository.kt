@@ -2,8 +2,8 @@ package se.magello.db.repositories
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.transactions.transaction
-import se.magello.db.Skill
-import se.magello.db.Skills
+import se.magello.db.tables.Skill
+import se.magello.db.tables.Skills
 import se.magello.workflow.MagelloSkill
 import se.magello.workflow.MagelloUserSkillWithUserInfo
 

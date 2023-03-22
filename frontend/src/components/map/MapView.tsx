@@ -3,16 +3,21 @@ import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
 import styled, {css} from "styled-components";
 import {WeWorkHerePage} from "./WeWorkHerePage";
 import {MagelloWorkAssignment} from "../dataTypes/dataTypes";
-import {PopupEvent} from "leaflet";
+import L, {PopupEvent} from "leaflet";
 import {WorkplaceContext} from "../../App";
 
 export const MapView = () => {
     const {workplaces: data, isLoading} = useContext(WorkplaceContext);
     const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkAssignment | null>(null)
 
+    const latLng1 = L.latLng(55, 11);
+    const latLng2 = L.latLng(63, 20);
+
+    const bounds = L.latLngBounds(latLng2, latLng1);
+
     const mapContent = useCallback(() => {
-        return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]}
-                                                         zoom={10} scrollWheelZoom={false}>
+        return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]} maxBounds={bounds} minZoom={8}
+                                                         zoom={12} scrollWheelZoom={false}>
             <TileLayer
                 attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
                 url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
@@ -22,10 +27,6 @@ export const MapView = () => {
                         setCurrentWorkplace={setCurrentWorkplace}/>
         </StyledMapContainer>)
     }, [currentWorkplace, data, isLoading]);
-
-    useEffect(() => {
-        console.log("currentWorkplace:", currentWorkplace)
-    }, [currentWorkplace])
 
     return (
         <>
@@ -53,7 +54,7 @@ const Workplaces = ({
                     setTimeout(() => {
                         map.invalidateSize(true);
                         // Should we zoom in closer?
-                        map.flyTo(latLng, 11.5, {
+                        map.flyTo(latLng, map.getZoom(), {
                             duration: 1.0,
                             animate: true,
                             easeLinearity: 0.25,
@@ -127,11 +128,6 @@ const baseMapHolder = css`
   overflow: hidden;
 `
 
-const MapHolderExpanded = styled.div`
-  height: 50vh;
-  ${baseMapHolder}
-`
-
 const MapHolderFullscreen = styled.div`
   height: calc(100vh - 80px);
   ${baseMapHolder}
@@ -139,6 +135,6 @@ const MapHolderFullscreen = styled.div`
 
 const StyledMapContainer = styled(MapContainer)`
   height: 100%;
-  minHeight: 100%;
+  min-height: 100%;
   width: 100%;
 `

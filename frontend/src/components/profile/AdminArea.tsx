@@ -1,11 +1,10 @@
 import React, {useCallback} from "react";
 import styled from "styled-components";
 import {ProfileAreaStyle} from "./ProfileForm";
-import {DefaultFormButton, FormButton, FormLabel} from "./components/FormComponents";
-import {useLocation} from "react-router-dom";
+import {DefaultFormButton, FormLabel} from "./components/FormComponents";
+import {toast} from "react-toastify";
 
 export const AdminArea = ({token}: {token: string | null}) => {
-    const location = useLocation();
     const onClick = useCallback(() => {
         const requestOptions = {
             method: "GET",
@@ -14,21 +13,29 @@ export const AdminArea = ({token}: {token: string | null}) => {
             },
         }
 
-        fetch("http://localhost:8080/users/foodpreferences/export", requestOptions)
-            .then((request) => {
-                if (request.status >= 400) {
-                    // TODO: Show a popup somehow
-                    console.log("failed to send data!")
-                } else {
-                    request.blob().then((blob) => {
-                        let file = window.URL.createObjectURL(blob)
-                        let a = document.createElement('a')
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/foodpreferences/export`, requestOptions)
+            .then((response) => {
+                if (response.status === 200) {
+                    response.blob().then((blob) => {
+                        let file = window.URL.createObjectURL(blob);
+                        let a = document.createElement('a');
                         a.href = file;
-                        a.download = "export.csv"
-                        document.body.appendChild(a)
-                        a.click()
-                        a.remove()
-                    })
+                        a.download = "food-preferences-export.csv";
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                    });
+                } else {
+                    toast.error(() => (<div>Exportering av matpreferenser misslyckades<p style={{fontSize: "14px", fontWeight: 400}}>Fick status {response.status}, prova att refresha sidan eller fråga Fabian!</p></div>), {
+                        position: "bottom-center",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                    });
                 }
             })
     }, [token]);

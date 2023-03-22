@@ -3,7 +3,7 @@ package se.magello.db.repositories
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
-import se.magello.db.Workplace
+import se.magello.db.tables.Workplace
 import se.magello.workflow.*
 
 class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
