@@ -15,7 +15,6 @@
     "@types/react-table": "^7.7.14",
     "leaflet": "^1.9.3",
     "react": "^18.2.0",
-    "react-bootstrap": "^2.6.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.43.1",
     "react-icons": "^4.7.1",

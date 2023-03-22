@@ -7,17 +7,17 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.cinode.CinodeClient
 import se.magello.cinode.CinodeSkill
 import se.magello.cinode.CinodeUser
-import se.magello.db.Refresh
-import se.magello.db.Skill
-import se.magello.db.Skills
-import se.magello.db.User
-import se.magello.db.UserSkill
-import se.magello.db.UserSkills
-import se.magello.db.Users
-import se.magello.db.Workplace
-import se.magello.db.Workplaces
-import se.magello.map.EniroAddressLookupClient
-import se.magello.map.EniroAddressLookupClient.Companion.MAGELLO_OFFICE_COORDINATES
+import se.magello.db.tables.Refresh
+import se.magello.db.tables.Skill
+import se.magello.db.tables.Skills
+import se.magello.db.tables.User
+import se.magello.db.tables.UserSkill
+import se.magello.db.tables.UserSkills
+import se.magello.db.tables.Users
+import se.magello.db.tables.Workplace
+import se.magello.db.tables.Workplaces
+import se.magello.map.AddressLookupClient
+import se.magello.map.AddressLookupClient.Companion.MAGELLO_OFFICE_COORDINATES
 import se.magello.salesforce.SalesForceClient
 import se.magello.salesforce.responses.Attributes
 import se.magello.salesforce.responses.RecordType
@@ -34,7 +34,7 @@ import se.magello.salesforce.responses.RecordType
 class UserDataFetcher(
     private val cinodeClient: CinodeClient,
     private val salesForceClient: SalesForceClient,
-    private val addressLookupClient: EniroAddressLookupClient
+    private val addressLookupClient: AddressLookupClient
 ) {
     suspend fun start() {
         val cinodeUsers = cinodeClient.getAllUsers()
@@ -167,7 +167,7 @@ class UserDataFetcher(
     }
 
     companion object {
-        val MAGELLO_OFFICE = RecordType.Account("Magello -- Mellan uppdrag", Attributes("n/a"), "556531-7129")
+        val MAGELLO_OFFICE = RecordType.Account("Magello", Attributes("n/a"), "556531-7129")
     }
 }
 

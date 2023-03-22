@@ -20,7 +20,7 @@ import se.magello.cinode.CinodeClient
 import se.magello.db.repositories.SkillRepository
 import se.magello.db.repositories.UserRepository
 import se.magello.db.repositories.WorkAssignmentRepository
-import se.magello.map.EniroAddressLookupClient
+import se.magello.map.AddressLookupClient
 import se.magello.salesforce.SalesForceClient
 import se.magello.workflow.*
 
@@ -76,7 +76,7 @@ fun Application.configureRouting(config: Config) {
     val salesForceConfig = config.getConfig("salesforce")
     val cinodeClient = CinodeClient(cinodeConfig)
     val salesForceClient = SalesForceClient(salesForceConfig)
-    val workflow = MergeUserDataWorkflow(UserDataFetcher(cinodeClient, salesForceClient, EniroAddressLookupClient()))
+    val workflow = MergeUserDataWorkflow(UserDataFetcher(cinodeClient, salesForceClient, AddressLookupClient()))
 
     val userRepository = UserRepository(workflow)
     val skillRepository = SkillRepository()
@@ -156,6 +156,10 @@ fun Application.configureRouting(config: Config) {
                 call.principal<JWTPrincipal>()?.let {
                     if (it.isAdmin()) {
                         val rows = userRepository.getAllUserPreferences().csvFormat()
+                        call.response.headers.append(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.Attachment.disposition
+                        )
                         call.respondOutputStream(ContentType.Text.CSV) {
                             csvWriter().writeAll(rows, this)
                         }

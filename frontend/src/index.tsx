@@ -21,12 +21,10 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 // StrictMode apparently make some useEffects being called twice :O
 // Read more here: https://stackoverflow.com/questions/61254372/my-react-component-is-rendering-twice-because-of-strict-mode
 root.render(
-    <React.StrictMode>
-        <MsalProvider instance={msalInstance}>
-            <AppCss/>
-            <App/>
-        </MsalProvider>
-    </React.StrictMode>
+    <MsalProvider instance={msalInstance}>
+        <AppCss/>
+        <App/>
+    </MsalProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

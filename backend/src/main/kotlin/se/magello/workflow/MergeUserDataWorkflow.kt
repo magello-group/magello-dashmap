@@ -8,8 +8,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
-import se.magello.db.Refresh
-import se.magello.db.User
+import se.magello.db.tables.Refresh
+import se.magello.db.tables.User
 
 private val logger = KotlinLogging.logger {}
 
@@ -29,7 +29,11 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
                 runBlocking {
                     job = launch {
                         try {
+                            logger.info { "Starting Salesforce/Cinode integration job" }
+
                             worker.start()
+
+                            logger.info { "Completed Salesforce/Cinode integration job" }
                         } catch (e: Exception) {
                             logger.error(e) { "Failed to fetch and combine user data" }
                         }

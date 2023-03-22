@@ -9,6 +9,7 @@ import {WorkerImageCard} from "../map/WorkerImageCard";
 import {AdminArea} from "./AdminArea";
 import {useParams} from "react-router-dom";
 import {ProfileContent} from "./ProfileContent";
+import {toast} from "react-toastify";
 
 export const ProfilePage = (props: any) => {
     const {instance, accounts} = useMsal();
@@ -41,30 +42,56 @@ export const ProfilePage = (props: any) => {
         }
 
         if (profileId) {
-            fetch(`http://localhost:8080/users/${profileId}`, {
+            fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/${profileId}`, {
                 method: 'GET',
                 headers: {
                     "Accept": "application/json",
                     "Authorization": `Bearer ${token}`
                 }
             }).then((response) => {
-                response.json().then((body) => {
-                    setPublicMagelloUser(body);
-                    setIsLoading(false);
-                })
+                if (response.status === 200) {
+                    response.json().then((body) => {
+                        setPublicMagelloUser(body);
+                        setIsLoading(false);
+                    })
+                } else {
+                    toast.error(() => (<div>Hämtning av profil misslyckades<p style={{fontSize: "14px", fontWeight: 400}}>Fick status {response.status}, prova att refresha sidan!</p></div>), {
+                        position: "bottom-center",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                    });
+                }
             });
         } else {
-            fetch("http://localhost:8080/users/self", {
+            fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/self`, {
                 method: 'GET',
                 headers: {
                     "Accept": "application/json",
                     "Authorization": `Bearer ${token}`
                 }
             }).then((response) => {
-                response.json().then((body) => {
-                    setMagelloUser(body);
-                    setIsLoading(false);
-                })
+                if (response.status === 200) {
+                    response.json().then((body) => {
+                        setMagelloUser(body);
+                        setIsLoading(false);
+                    });
+                } else {
+                    toast.error(() => (<div>Hämtning av profil misslyckades<p style={{fontSize: "14px", fontWeight: 400}}>Fick status {response.status}, prova att refresha sidan!</p></div>), {
+                        position: "bottom-center",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                        theme: "light",
+                    });
+                }
             });
         }
     }, [token, profileId])

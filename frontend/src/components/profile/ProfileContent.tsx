@@ -8,6 +8,8 @@ import {Column, Row, useSortBy, useTable} from "react-table";
 import {IoArrowDown, IoArrowUp} from "react-icons/io5";
 import {GoDash} from "react-icons/go";
 import {useNavigate} from "react-router-dom";
+import {AiFillStar} from "react-icons/ai";
+import {BsDash} from "react-icons/bs";
 
 interface ProfileContentProps {
     userData: PublicMagelloUser
@@ -16,7 +18,16 @@ interface ProfileContentProps {
 export function ProfileContent({userData}: ProfileContentProps) {
     const skills = useMemo(() => userData.skills, [userData])
     const navigate = useNavigate();
-    const columns = useMemo(() => {
+
+    const sort = useMemo(() => (rowA: Row<MagelloUserSkill>, rowB: Row<MagelloUserSkill>, columnId: String, desc: boolean) => {
+        if (rowA.original.favourite === undefined) return -1;
+        if (rowB.original.favourite === undefined) return 1;
+        if (rowA.original.favourite > rowB.original.favourite) return 1;
+        if (rowA.original.favourite < rowB.original.favourite) return -1;
+        return 0
+    }, [])
+
+    const cols = useMemo(() => {
         return [
             {
                 Header: "Kompetens",
@@ -25,9 +36,15 @@ export function ProfileContent({userData}: ProfileContentProps) {
             {
                 Header: "Nivå",
                 accessor: "level"
+            },
+            {
+                Header: "Favorit",
+                accessor: "favourite",
+                Cell: ({value}) => (value ? <AiFillStar/> : <BsDash/>),
+                sortType: sort
             }
         ] as Column[]
-    }, [])
+    }, []);
 
     const {
         getTableProps,
@@ -36,7 +53,7 @@ export function ProfileContent({userData}: ProfileContentProps) {
         rows,
         prepareRow,
     } = useTable({
-            columns: columns,
+            columns: cols,
             data: skills,
         },
         useSortBy

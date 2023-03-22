@@ -5,6 +5,8 @@ import {AuthenticationResult} from "@azure/msal-browser";
 import {useMsal} from "@azure/msal-react";
 import {MagelloSkill} from "../../dataTypes/dataTypes";
 import {useNavigate} from "react-router-dom";
+import {toast} from "react-toastify";
+import { DividerSolid } from "../../profile/components/FormComponents";
 
 export const SkillSearchReactAutocomplete = () => {
     let {instance, accounts} = useMsal();
@@ -35,7 +37,7 @@ export const SkillSearchReactAutocomplete = () => {
             return Promise.resolve([])
         }
 
-        return fetch("http://localhost:8080/skill/search?" + new URLSearchParams({
+        return fetch(`${process.env.REACT_APP_BACKEND_HOST}/skill/search?` + new URLSearchParams({
             query: keyword,
         }), {
             method: 'GET',
@@ -43,16 +45,32 @@ export const SkillSearchReactAutocomplete = () => {
                 "Accept": "application/json",
                 "Authorization": `Bearer ${token}`
             }
-        }).then((response) => response.json().then((result) => {
-            const resp = result as MagelloSkill[]
-            return resp.map((value) => {
-                return {
-                    id: value.id,
-                    name: value.masterSynonym,
-                    extras: value.synonyms
-                } as ListItem;
-            });
-        }))
+        }).then((response) => {
+            if (response.status === 200) {
+                return response.json().then((result) => {
+                    const resp = result as MagelloSkill[]
+                    return resp.map((value) => {
+                        return {
+                            id: value.id,
+                            name: value.masterSynonym,
+                            extras: value.synonyms
+                        } as ListItem;
+                    });
+                });
+            } else {
+                toast.error(() => (<div>Sökning efter kompetens misslyckades<p style={{fontSize: "14px", fontWeight: 400}}>Fick status {response.status}, prova att refresha sidan eller fråga Fabian!</p></div>), {
+                    position: "bottom-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                });
+                return Promise.resolve([]);
+            }
+        })
     }, [token])
 
     const onSelect = useCallback((value: ListItem) => {
@@ -61,6 +79,7 @@ export const SkillSearchReactAutocomplete = () => {
 
     return (
         <ReactSearchAutocomplete
+            formatResult={(result: any) => (<><div>{result.name}</div><small >Kompetens</small></>)}
             placeholder="Sök efter kompetens inom företaget..."
             fetchNewItems={fetchItems}
             items={[]}
