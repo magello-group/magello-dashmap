@@ -11,8 +11,8 @@ import org.jetbrains.exposed.dao.id.IdTable
 object Workplaces : IdTable<String>() {
     override val id = varchar("id", 25).entityId()
     val companyName = varchar("companyName", 1024).index()
-    val longitude = double("longitude")
-    val latitude = double("latitude")
+    val longitude = double("longitude").nullable()
+    val latitude = double("latitude").nullable()
 }
 class Workplace(id: EntityID<String>) : Entity<String>(id) {
     companion object : EntityClass<String, Workplace>(Workplaces)

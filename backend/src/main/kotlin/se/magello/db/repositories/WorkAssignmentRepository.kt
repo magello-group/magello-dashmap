@@ -17,8 +17,7 @@ class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
                 MagelloWorkAssignment(
                     workplace.id.value,
                     workplace.companyName,
-                    workplace.longitude,
-                    workplace.latitude,
+                    fromPoints(workplace.longitude, workplace.latitude),
                     workplace.users.map { user ->
                         StrippedMagelloUser(
                             user.id.value,
@@ -58,13 +57,12 @@ class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
                 .with(Workplace::users)
                 .drop(offset)
                 .take(limit)
-                .map {
+                .map { workplace ->
                     MagelloWorkAssignment(
-                        organisationId = it.id.value,
-                        companyName = it.companyName,
-                        longitude = it.longitude,
-                        latitude = it.latitude,
-                        users = it.users.map { user ->
+                        organisationId = workplace.id.value,
+                        companyName = workplace.companyName,
+                        coordinates = fromPoints(workplace.longitude, workplace.latitude),
+                        users = workplace.users.map { user ->
                             StrippedMagelloUser(
                                 id = user.id.value,
                                 email = user.email,

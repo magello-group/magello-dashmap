@@ -69,8 +69,7 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
                     assignment = MagelloWorkAssignment(
                         organisationId = user.workplace.id.value,
                         companyName = user.workplace.companyName,
-                        longitude = user.workplace.longitude,
-                        latitude = user.workplace.latitude,
+                        coordinates = fromPoints(user.workplace.longitude, user.workplace.latitude)
                     ),
                     preferences = user.preferences?.let {
                         MagelloUserPreferences(
@@ -95,38 +94,7 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
             User.findById(userId)
                 ?.load(User::workplace, User::userSkills, User::preferences)
                 ?.let { user ->
-                    PublicMagelloUser(
-                        id = user.id.value,
-                        email = user.email,
-                        firstName = user.firstName,
-                        imageUrl = user.imageUrl,
-                        lastName = user.lastName,
-                        title = user.title,
-                        skills = user.userSkills.map { userSkill ->
-                            MagelloUserSkill(
-                                id = userSkill.skill.id.value,
-                                favourite = userSkill.favourite,
-                                masterSynonym = userSkill.skill.masterSynonym,
-                                synonyms = userSkill.skill.synonyms?.split(";") ?: emptyList(),
-                                level = userSkill.level,
-                                levelGoal = userSkill.levelGoal,
-                                levelGoalDeadline = userSkill.levelGoalDeadline,
-                                numberOfDaysWorkExperience = userSkill.numberOfDaysWorkExperience
-                            )
-                        },
-                        assignment = MagelloWorkAssignment(
-                            organisationId = user.workplace.id.value,
-                            companyName = user.workplace.companyName,
-                            longitude = user.workplace.longitude,
-                            latitude = user.workplace.latitude,
-                        ),
-                        preferences = user.preferences?.let {
-                            MagelloUserPublicPreferences(
-                                socials = it.socials.split(";").map { url -> SocialUrl(url) },
-                                quote = it.quote
-                            )
-                        }
-                    )
+                    mapToMagelloUser(user)
                 }
         }
     }

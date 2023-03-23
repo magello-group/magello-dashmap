@@ -1,11 +1,23 @@
 export interface MagelloWorkAssignment {
     organisationId: string
     companyName: string
-    longitude: number,
-    latitude: number,
+    coordinates: MagelloCoordinates;
     users: StrippedMagelloUser[]
 
 }
+
+export type MagelloCoordinates = Unmapped | Mapped;
+
+type Unmapped = {
+    type: string,
+}
+
+export type Mapped = {
+    type: string,
+    lon: number,
+    lat: number,
+}
+
 
 export interface PublicMagelloUser {
     id: number
