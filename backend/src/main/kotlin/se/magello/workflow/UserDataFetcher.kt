@@ -1,7 +1,9 @@
 package se.magello.workflow
 
+import kotlinx.serialization.SerialName
 import java.time.Instant
 import kotlinx.serialization.Serializable
+import mu.KotlinLogging
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.cinode.CinodeClient
@@ -26,6 +28,8 @@ import se.magello.salesforce.responses.RecordType
  * Ideas:
  *  - Where to lunch, find the best suitable lunch place between two assignments.
  */
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Combines user data from Salesforce, Cinode and company address information from Eniro in order to map and save the
@@ -62,6 +66,8 @@ class UserDataFetcher(
 
             // Currently the name is what we use to map Cinode users with Salesforce users.
             val nameId = "${cinodeUser.firstName} ${cinodeUser.lastName}"
+
+            // If no agreement is found, put the user in the Magello office.
             val agreementForUser = salesForceAgreements.find {
                 it.fullName == nameId && now.isBefore(it.endDate)
             } ?: RecordType.Agreement(
@@ -75,16 +81,20 @@ class UserDataFetcher(
         }
     }
 
-    private suspend fun combineUserWithExtras(cinodeUser: CinodeUser, agreement: RecordType.Agreement): PublicMagelloUser {
+    private suspend fun combineUserWithExtras(
+        cinodeUser: CinodeUser,
+        agreement: RecordType.Agreement
+    ): PublicMagelloUser {
         val skills = cinodeClient.getSkillsForUser(cinodeUser.companyUserId)
             .toMagelloSkills()
 
         val workAssignment = if (agreement.relatedAccount !is RecordType.Account) {
+            logger.warn { "Related account to agreement was not of Account type." }
+
             MagelloWorkAssignment(
                 organisationId = MAGELLO_OFFICE.organisationId,
                 companyName = MAGELLO_OFFICE.name,
-                longitude = MAGELLO_OFFICE_COORDINATES.lon,
-                latitude = MAGELLO_OFFICE_COORDINATES.lat
+                coordinates = MAGELLO_OFFICE_COORDINATES
             )
         } else {
             val organisationPosition = addressLookupClient.lookupOrganisationPosition(
@@ -92,10 +102,9 @@ class UserDataFetcher(
             )
 
             MagelloWorkAssignment(
-                agreement.relatedAccount.organisationId,
-                agreement.relatedAccount.name,
-                organisationPosition.lon,
-                organisationPosition.lat
+                organisationId = agreement.relatedAccount.organisationId,
+                companyName = agreement.relatedAccount.name,
+                coordinates = organisationPosition
             )
         }
 
@@ -137,8 +146,18 @@ class UserDataFetcher(
                 user.assignment.organisationId
             ) ?: Workplace.new(user.assignment.organisationId) {
                 companyName = user.assignment.companyName
-                longitude = user.assignment.longitude
-                latitude = user.assignment.latitude
+
+                when (val coordinates = user.assignment.coordinates) {
+                    is MagelloCoordinates.Mapped -> {
+                        longitude = coordinates.lon
+                        latitude = coordinates.lat
+                    }
+
+                    is MagelloCoordinates.Unmapped -> {
+                        longitude = null
+                        latitude = null
+                    }
+                }
             }
 
             User.new(user.id) {
@@ -309,7 +328,23 @@ fun List<CinodeSkill>.toMagelloSkills() = this.map {
 data class MagelloWorkAssignment(
     val organisationId: String,
     val companyName: String,
-    val longitude: Double,
-    val latitude: Double,
+    val coordinates: MagelloCoordinates,
     val users: List<StrippedMagelloUser> = emptyList()
 )
+
+@Serializable
+sealed class MagelloCoordinates {
+    @Serializable
+    @SerialName("unmapped")
+    object Unmapped : MagelloCoordinates()
+
+    @Serializable
+    @SerialName("mapped")
+    data class Mapped(val lon: Double, val lat: Double) : MagelloCoordinates()
+}
+
+fun fromPoints(lon: Double?, lat: Double?): MagelloCoordinates = if (lat == null || lon == null) {
+    MagelloCoordinates.Unmapped
+} else {
+    MagelloCoordinates.Mapped(lon, lat)
+}

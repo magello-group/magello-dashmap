@@ -109,7 +109,7 @@ class CinodeClient(
         logger.info { "Fetched users, got status ${response.status}" }
 
         return if (response.status == HttpStatusCode.OK) {
-            logger.info { "Got ${response.headers["x-ratelimit-remaining"]} requests remaining towards Cinode before rate limited" }
+            logger.debug { "Got ${response.headers["x-ratelimit-remaining"]} requests remaining towards Cinode before rate limited" }
             response.body()
         } else {
             logger.warn { "Failed to fetch users from Cinode, got status ${response.status}" }
@@ -120,7 +120,7 @@ class CinodeClient(
     suspend fun getSkillsForUser(userId: Int): List<CinodeSkill> {
         val token = getOrRefreshToken() ?: return emptyList()
 
-        logger.info { "Fetching skills for user with id=$userId" }
+        logger.debug { "Fetching skills for user with id=$userId" }
 
         val response = httpClient.get(BASE_URL) {
             url.path("/v0.1/companies/$companyId/users/$userId/skills")
@@ -128,7 +128,7 @@ class CinodeClient(
         }
 
         val cinodeSkills: List<CinodeSkill> = if (response.status == HttpStatusCode.OK) {
-            logger.info { "Got ${response.headers["x-ratelimit-remaining"]} requests remaining towards Cinode before rate limited" }
+            logger.debug { "Got ${response.headers["x-ratelimit-remaining"]} requests remaining towards Cinode before rate limited" }
             response.body()
         } else {
             val body = response.bodyAsText()

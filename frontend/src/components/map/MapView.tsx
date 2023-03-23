@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useState} from "react";
 import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
 import styled, {css} from "styled-components";
 import {WeWorkHerePage} from "./WeWorkHerePage";
-import {MagelloWorkAssignment} from "../dataTypes/dataTypes";
+import {MagelloWorkAssignment, Mapped} from "../dataTypes/dataTypes";
 import L, {PopupEvent} from "leaflet";
 import {WorkplaceContext} from "../../App";
 
@@ -104,12 +104,16 @@ const Workplaces = ({
     }, [currentWorkplace])
     */
 
+    const filterMapped = data.filter((workplace) => {
+        return workplace.coordinates.type == "mapped";
+    });
+
     return (
         <>
             {
-                data.map((workplace) => {
+                filterMapped.map((workplace) => {
                     return (
-                        <Marker key={workplace.organisationId} position={[workplace.latitude, workplace.longitude]}>
+                        <Marker key={workplace.organisationId} position={[(workplace.coordinates as Mapped).lat, (workplace.coordinates as Mapped).lon]}>
                             <Popup content={workplace.companyName}/>
                         </Marker>
                     )

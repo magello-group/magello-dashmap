@@ -50,7 +50,11 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
 }
 
 fun List<User>.mapToMagelloUser() = this.map { user ->
-    PublicMagelloUser(
+    mapToMagelloUser(user)
+}
+
+fun mapToMagelloUser(user: User): PublicMagelloUser {
+    return PublicMagelloUser(
         id = user.id.value,
         email = user.email,
         firstName = user.firstName,
@@ -72,8 +76,7 @@ fun List<User>.mapToMagelloUser() = this.map { user ->
         assignment = MagelloWorkAssignment(
             organisationId = user.workplace.id.value,
             companyName = user.workplace.companyName,
-            longitude = user.workplace.longitude,
-            latitude = user.workplace.latitude
+            coordinates = fromPoints(user.workplace.longitude, user.workplace.latitude)
         ),
         preferences = user.preferences?.let {
             MagelloUserPublicPreferences(
