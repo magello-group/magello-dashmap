@@ -1,29 +1,37 @@
-import React, {useCallback, useContext, useEffect, useState} from "react";
+import React, {ReactNode, useCallback, useContext, useEffect, useState} from "react";
 import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
 import styled, {css} from "styled-components";
 import {WeWorkHerePage} from "./WeWorkHerePage";
 import {MagelloWorkAssignment, Mapped} from "../dataTypes/dataTypes";
-import L, {PopupEvent} from "leaflet";
+import * as L from "leaflet";
+import {MarkerClusterGroup, MarkerClusterGroupOptions, PopupEvent} from "leaflet";
+import 'leaflet.markercluster';
 import {WorkplaceContext} from "../../App";
+import {createElementObject, createLayerComponent, EventedProps, extendContext} from "@react-leaflet/core";
+
+
+const latLng1 = L.latLng(55, 11);
+const latLng2 = L.latLng(63, 20);
+
+export const maxBounds = L.latLngBounds(latLng2, latLng1);
 
 export const MapView = () => {
-    const {workplaces: data, isLoading} = useContext(WorkplaceContext);
+    const {workplaces: data, isLoading, reload} = useContext(WorkplaceContext);
     const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkAssignment | null>(null)
 
-    const latLng1 = L.latLng(55, 11);
-    const latLng2 = L.latLng(63, 20);
-
-    const bounds = L.latLngBounds(latLng2, latLng1);
+    useEffect(() => {
+        reload();
+    }, []);
 
     const mapContent = useCallback(() => {
-        return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]} maxBounds={bounds} minZoom={8}
+        return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]} maxBounds={maxBounds} minZoom={8}
                                                          zoom={12} scrollWheelZoom={false}>
             <TileLayer
                 attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
-                url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+                url="https://tiles-eu.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
                 maxZoom={20}
             />
-            <Workplaces data={data ? data : []} currentWorkplace={currentWorkplace}
+            <Workplaces data={data ? data : []}
                         setCurrentWorkplace={setCurrentWorkplace}/>
         </StyledMapContainer>)
     }, [currentWorkplace, data, isLoading]);
@@ -40,12 +48,27 @@ export const MapView = () => {
 
 const Workplaces = ({
                         data,
-                        currentWorkplace,
                         setCurrentWorkplace
-                    }: { data: MagelloWorkAssignment[], currentWorkplace: MagelloWorkAssignment | null, setCurrentWorkplace: React.Dispatch<React.SetStateAction<MagelloWorkAssignment | null>> }) => {
+                    }: {
+    data: MagelloWorkAssignment[],
+    setCurrentWorkplace: React.Dispatch<React.SetStateAction<MagelloWorkAssignment | null>>
+}) => {
     const map = useMap();
 
     useEffect(() => {
+        const clusterGroup = L.markerClusterGroup();
+        const filtered = data.filter((workplace) => {
+            return workplace.coordinates.type === "mapped";
+        });
+        filtered.forEach(mapped => {
+            const mappedCoordinates = mapped.coordinates as Mapped;
+            const marker = L.marker([mappedCoordinates.lat, mappedCoordinates.lon]);
+            marker.bindPopup(`${mapped.companyName}`);
+            clusterGroup.addLayer(marker);
+        })
+
+        map.addLayer(clusterGroup);
+
         map.on({
             popupopen: (event: PopupEvent) => {
                 const latLng = event.popup.getLatLng();
@@ -61,6 +84,7 @@ const Workplaces = ({
                         });
                     }, 100)
                 }
+                // @ts-ignore
                 const workplace = data.find((workplace) => {
                     return event.popup.getContent() === workplace.companyName
                 });
@@ -72,11 +96,19 @@ const Workplaces = ({
                 setCurrentWorkplace(null);
 
                 setTimeout(() => {
-                    map.invalidateSize(true);
+                    try {
+                        map.invalidateSize(true);
+                    } catch (e) {
+                        console.log("Failed to invalidate size since we have lost its reference");
+                    }
                 }, 100)
             }
         })
-    }, [data, map, setCurrentWorkplace])
+
+        return () => {
+            map.removeLayer(clusterGroup);
+        }
+    }, [map, data, setCurrentWorkplace]);
 
     /*
     // Fly around functionality. TODO: Should be paused if the user is moving around the map
@@ -104,23 +136,7 @@ const Workplaces = ({
     }, [currentWorkplace])
     */
 
-    const filterMapped = data.filter((workplace) => {
-        return workplace.coordinates.type == "mapped";
-    });
-
-    return (
-        <>
-            {
-                filterMapped.map((workplace) => {
-                    return (
-                        <Marker key={workplace.organisationId} position={[(workplace.coordinates as Mapped).lat, (workplace.coordinates as Mapped).lon]}>
-                            <Popup content={workplace.companyName}/>
-                        </Marker>
-                    )
-                })
-            }
-        </>
-    )
+    return null;
 }
 
 const baseMapHolder = css`

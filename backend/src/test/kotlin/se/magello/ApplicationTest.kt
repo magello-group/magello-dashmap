@@ -1,6 +1,5 @@
 package se.magello
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Test
@@ -33,6 +32,7 @@ class ApplicationTest {
                     "url": "/services/data/v57.0/sobjects/Avtal__c/a085r000002vYdhAAE"
                   },
                   "Name": "Fabian Eriksson",
+                  "Slutdatum__c": "2023-04-05",
                   "Avtalspart__r": {
                     "attributes": {
                       "type": "Account",

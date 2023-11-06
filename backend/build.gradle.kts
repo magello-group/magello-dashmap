@@ -6,9 +6,9 @@ val exposed_version: String by project
 
 plugins {
   application
-  kotlin("jvm") version "1.7.22"
-  id("io.ktor.plugin") version "2.1.3"
-  kotlin("plugin.serialization") version "1.7.22"
+  kotlin("jvm") version "1.9.20-RC2"
+  id("io.ktor.plugin") version "2.3.5"
+  kotlin("plugin.serialization") version "1.9.20-RC2"
 }
 
 group = "se.magello"
@@ -22,6 +22,15 @@ application {
 
 repositories {
   mavenCentral()
+}
+
+kotlin {
+  jvmToolchain(21)
+}
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of("21"))
+  }
 }
 
 dependencies {
@@ -53,8 +62,8 @@ dependencies {
   implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.8.0")
 
   // cache
-  implementation("com.sksamuel.aedile:aedile-core:1.1.2")
-  implementation("com.github.ben-manes.caffeine:caffeine:3.1.2")
+  implementation("com.sksamuel.aedile:aedile-core:1.3.0-RC1")
+  implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
   // database
   implementation("org.jetbrains.exposed:exposed-core:$exposed_version")

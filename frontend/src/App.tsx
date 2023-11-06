@@ -9,6 +9,7 @@ import {MagelloWorkAssignment} from "./components/dataTypes/dataTypes";
 import {SkillPage} from "./components/skillSearch/SkillPage";
 import {createGlobalStyle} from "styled-components";
 import {toast, ToastContainer} from "react-toastify";
+import {UpdateCoordinatesPage} from "./components/profile/coordinates/UpdateCoordinatesPage";
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
                 element: <SkillPage/>
             },
             {
+                path: "map-workplaces",
+                element: <UpdateCoordinatesPage/>
+            },
+            {
                 path: "",
                 element: <MapView/>
             }
@@ -53,7 +58,11 @@ const router = createBrowserRouter([
     }
 ])
 
-export const WorkplaceContext = createContext<{ workplaces: MagelloWorkAssignment[] | null, isLoading: boolean, reload: () => void }>({
+export const WorkplaceContext = createContext<{
+    workplaces: MagelloWorkAssignment[] | null,
+    isLoading: boolean,
+    reload: () => void
+}>({
     workplaces: [],
     isLoading: true,
     reload: () => {
@@ -73,7 +82,8 @@ function App() {
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [data, setData] = useState<MagelloWorkAssignment[] | null>(null)
 
-    useEffect(() => {
+    const reload = useCallback(() => {
+        setIsLoading(true);
         fetchWorkplaces()
             .then((response) => {
                 if (response.status === 200) {
@@ -101,7 +111,8 @@ function App() {
             .catch(() => {
                 toast.error(() => (
                     <div>Hämtning av arbetsplatsinformation fallerade!
-                        <p style={{fontSize: "14px", fontWeight: 400}}>Prova att refresha sidan eller fråga Fabian!</p></div>
+                        <p style={{fontSize: "14px", fontWeight: 400}}>Prova att refresha sidan eller fråga Fabian!</p>
+                    </div>
                 ), {
                     position: "bottom-center",
                     autoClose: 5000,
@@ -112,17 +123,6 @@ function App() {
                     progress: undefined,
                     theme: "light",
                 });
-            })
-    }, [setData, setIsLoading])
-
-    const reload = useCallback(() => {
-        setIsLoading(true);
-        fetchWorkplaces()
-            .then((response) => {
-                response.json().then((body) => {
-                    setData(body);
-                    setIsLoading(false);
-                })
             })
     }, [setData, setIsLoading])
 

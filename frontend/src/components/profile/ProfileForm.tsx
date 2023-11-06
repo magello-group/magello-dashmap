@@ -28,7 +28,7 @@ export const ProfileForm = ({userData, token}: { userData: MagelloUser, token: s
 
     const onSubmit: SubmitHandler<MagelloFormPreferences> = useCallback((data) => {
         const dataToSend = {
-            dietPreferences: data.dietPreferences.map(v => v.label),
+            dietPreferences: data.dietPreferences.filter(v => v !== undefined).map(v => v.label),
             extraDietPreferences: data.extraDietPreferences,
             socials: data.socials,
             quote: data.quote

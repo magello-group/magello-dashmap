@@ -1,6 +1,5 @@
 import React from "react";
 import { useMsal } from "@azure/msal-react";
-import Button from "react-bootstrap/Button";
 import styled from "styled-components";
 
 /**
@@ -28,13 +27,14 @@ export const LoginLogoutButton = styled.button`
   padding-right: 20px;
   width: 160px;
   height: 30px;
-  background-image: url("/button.svg");
+  background-image: url("/button-blue.svg");
   border: none;
   font-weight: 300;
   font-family: inherit;
   font-size: 1rem;
   background-color: transparent;
-  :hover{
+
+  :hover {
     background-color: #00aeef;
   }
 `

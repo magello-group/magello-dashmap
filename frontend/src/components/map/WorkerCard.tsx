@@ -8,7 +8,7 @@ export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
     const navigate = useNavigate();
     const navigateToUser = useCallback(() => {
         navigate(`/profile/${worker.id}`)
-    }, [])
+    }, [worker.id])
 
     const favouriteUserSkills = worker.userSkills.filter((skill) => skill?.favourite === true);
     return (
@@ -18,7 +18,7 @@ export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
             {worker.quote && (<Quote>{worker.quote ? worker.quote : ""}</Quote>)}
             <SkillArea>
                 {favouriteUserSkills.slice(0, Math.min(3, favouriteUserSkills.length)).map((skill) => (
-                    <SkillBadge>{skill.masterSynonym} | {skill.level}</SkillBadge>
+                    <SkillBadge key={skill.id}>{skill.masterSynonym} | {skill.level}</SkillBadge>
                 ))}
             </SkillArea>
         </Content>

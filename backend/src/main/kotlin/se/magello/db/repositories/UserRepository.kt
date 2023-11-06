@@ -4,6 +4,7 @@ import io.ktor.server.auth.jwt.*
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
+import se.magello.db.tables.MappedCoordinates
 import se.magello.db.tables.User
 import se.magello.db.tables.UserPreference
 import se.magello.db.tables.Users
@@ -46,6 +47,7 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
                 .with(User::workplace, User::userSkills, User::preferences)
                 .singleOrNull()
             if (user != null) {
+                val coordinates = MappedCoordinates.findById(user.workplace.id.value)
                 MagelloUserSelf(
                     id = user.id.value,
                     email = user.email,
@@ -69,7 +71,7 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
                     assignment = MagelloWorkAssignment(
                         organisationId = user.workplace.id.value,
                         companyName = user.workplace.companyName,
-                        coordinates = fromPoints(user.workplace.longitude, user.workplace.latitude)
+                        coordinates = fromPoints(coordinates?.longitude, coordinates?.latitude)
                     ),
                     preferences = user.preferences?.let {
                         MagelloUserPreferences(
@@ -94,7 +96,11 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
             User.findById(userId)
                 ?.load(User::workplace, User::userSkills, User::preferences)
                 ?.let { user ->
-                    mapToMagelloUser(user)
+                    val coordinates = MappedCoordinates.findById(user.workplace.id).let {
+                        fromPoints(it?.longitude, it?.latitude)
+                    }
+
+                    mapToMagelloUser(user, coordinates)
                 }
         }
     }
@@ -119,15 +125,15 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
         }
     }
 
-    fun getAllUsers(limit: Int, offset: Int): List<PublicMagelloUser> {
+    fun getAllUsers(limit: Int, offset: Long): List<PublicMagelloUser> {
         if (workflow.isJobRunning()) {
             throw JobRunningException("Job is currently running")
         }
         return transaction {
             User.all()
+                .limit(limit, offset)
                 .with(User::workplace, User::userSkills)
-                .drop(offset)
-                .take(limit)
+                .toList()
                 .mapToMagelloUser()
         }
     }

@@ -7,7 +7,13 @@ export const WeWorkHerePage = ({currentWorkplace}: { currentWorkplace: MagelloWo
     return (
         currentWorkplace ?
             <WorkDisplayArea>
-                <WorkplaceName><b>{currentWorkplace.companyName}</b> - Det är vi som jobbar här!</WorkplaceName>
+                <WorkplaceName>
+                    <b>{currentWorkplace.companyName}</b> -
+                    {currentWorkplace.companyName === 'Magello'
+                        ? " Vi är mellan uppdrag"
+                        : " Det är vi som jobbar här!"
+                    }
+                </WorkplaceName>
                 <WorkerArea>
                     {
                         currentWorkplace.users.map((worker) => {

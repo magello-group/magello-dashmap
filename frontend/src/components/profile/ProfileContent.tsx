@@ -70,11 +70,12 @@ export function ProfileContent({userData}: ProfileContentProps) {
             </FormLabel>
             <FormLabel>Sociala sidor
                 {userData.preferences?.socials ? userData.preferences?.socials?.map((socialUrl) => (
-                    <FormGroup>
+                    <FormGroup key={socialUrl.url}>
                         <SocialLink href={socialUrl.url} target="_blank">
                             <SocialIconTextSpan>
                                 <SocialIcon style={{maxHeight: "30px", maxWidth: "30px", pointerEvents: "none"}}
                                             url={socialUrl.url}
+                                            as={"div"}
                                 />
                             </SocialIconTextSpan>
                             <SocialText>{socialUrl.url}</SocialText>

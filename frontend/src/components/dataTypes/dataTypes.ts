@@ -101,3 +101,8 @@ export interface MagelloSkill {
     masterSynonym: string
     synonyms: string[]
 }
+
+export interface MagelloUnmappedWorkplace {
+    organisationId: string
+    companyName: string
+}

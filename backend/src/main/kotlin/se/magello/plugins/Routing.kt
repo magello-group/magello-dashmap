@@ -9,14 +9,15 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
+import io.ktor.server.resources.get
 import io.ktor.server.resources.post
+import io.ktor.server.resources.put
 import io.ktor.server.response.*
-import io.ktor.server.routing.HttpMethodRouteSelector
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.routing
+import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import se.magello.cinode.CinodeClient
+import se.magello.db.repositories.MapCoordinatesRepository
 import se.magello.db.repositories.SkillRepository
 import se.magello.db.repositories.UserRepository
 import se.magello.db.repositories.WorkAssignmentRepository
@@ -27,7 +28,7 @@ import se.magello.workflow.*
 
 @Serializable
 @Resource("/workplaces")
-data class Workplaces(val limit: Int = 10, val offset: Int = 0) {
+data class Workplaces(val limit: Int = 100, val offset: Long = 0) {
     @Serializable
     @Resource("/{organisationId}")
     data class Workplace(val parent: Workplaces = Workplaces(), val organisationId: String)
@@ -35,7 +36,7 @@ data class Workplaces(val limit: Int = 10, val offset: Int = 0) {
 
 @Serializable
 @Resource("/users")
-data class Users(val limit: Int = 10, val offset: Int = 0) {
+data class Users(val limit: Int = 100, val offset: Long = 0) {
     @Serializable
     @Resource("self")
     data class Self(val parent: Users = Users()) {
@@ -47,10 +48,30 @@ data class Users(val limit: Int = 10, val offset: Int = 0) {
     @Serializable
     @Resource("/{userId}")
     data class Id(val parent: Users = Users(), val userId: Int)
+}
+
+@Serializable
+@Resource("/admin")
+class Admin {
+    @Serializable
+    @Resource("/foodpreferences/export")
+    data class ExportFoodPreferences(val parent: Admin = Admin())
 
     @Serializable
-    @Resource("foodpreferences/export")
-    data class ExportFoodPreferences(val parent: Users = Users())
+    @Resource("/coordinates")
+    data class Coordinates(val parent: Admin = Admin()) {
+        @Serializable
+        @Resource("/unmapped")
+        data class Unmapped(val parent: Coordinates = Coordinates(), val limit: Int = 100, val offset: Long = 0)
+
+        @Serializable
+        @Resource("/{id}")
+        data class Organisation(val parent: Coordinates = Coordinates(), val id: String) {
+            @Serializable
+            @Resource("/edit")
+            data class Edit(val parent: Organisation, val longitude: Double, val latitude: Double)
+        }
+    }
 }
 
 @Serializable
@@ -81,6 +102,7 @@ fun Application.configureRouting(config: Config) {
     val userRepository = UserRepository(workflow)
     val skillRepository = SkillRepository()
     val workAssignmentRepository = WorkAssignmentRepository(workflow)
+    val mapCoordinatesRepository = MapCoordinatesRepository()
 
     val routes = routing {
         get<Workplaces.Workplace> {
@@ -104,6 +126,7 @@ fun Application.configureRouting(config: Config) {
             }
         }
         authenticate("azure-jwt") {
+            // Users
             get<Users> {
                 try {
                     val allUsers = userRepository.getAllUsers(it.limit, it.offset)
@@ -152,7 +175,8 @@ fun Application.configureRouting(config: Config) {
                     }
                 }
             }
-            get<Users.ExportFoodPreferences> {
+            // Admin
+            get<Admin.ExportFoodPreferences> {
                 call.principal<JWTPrincipal>()?.let {
                     if (it.isAdmin()) {
                         val rows = userRepository.getAllUserPreferences().csvFormat()
@@ -168,6 +192,26 @@ fun Application.configureRouting(config: Config) {
                     }
                 } ?: call.respond(HttpStatusCode.Unauthorized)
             }
+            get<Admin.Coordinates.Unmapped> {
+                call.principal<JWTPrincipal>()?.let { jwt ->
+                    if (jwt.isAdmin()) {
+                        call.respond(mapCoordinatesRepository.getAllUnmappedWorkplaces(it.limit, it.offset))
+                    } else {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
+                } ?: call.respond(HttpStatusCode.Unauthorized)
+            }
+            put<Admin.Coordinates.Organisation.Edit> {
+                call.principal<JWTPrincipal>()?.let { jwt ->
+                    if (jwt.isAdmin()) {
+                        mapCoordinatesRepository.setCoordinatesForWorkplace(it.parent.id, it.longitude, it.latitude)
+                        call.respond(HttpStatusCode.NoContent)
+                    } else {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
+                } ?: call.respond(HttpStatusCode.Unauthorized)
+            }
+            // Skills
             get<Skill.Search> {
                 call.respond(skillRepository.searchSkill(it.query))
             }

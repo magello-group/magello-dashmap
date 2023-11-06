@@ -3,6 +3,7 @@ package se.magello.db.repositories
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
+import se.magello.db.tables.MappedCoordinates
 import se.magello.db.tables.Workplace
 import se.magello.workflow.*
 
@@ -12,22 +13,24 @@ class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
             throw JobRunningException("Job is currently running")
         }
         return transaction {
-            val workplace = Workplace.findById(organisationId)?.load(Workplace::users)
-            if (workplace != null) {
-                MagelloWorkAssignment(
-                    workplace.id.value,
-                    workplace.companyName,
-                    fromPoints(workplace.longitude, workplace.latitude),
-                    workplace.users.map { user ->
-                        StrippedMagelloUser(
-                            user.id.value,
-                            user.email,
-                            user.firstName,
-                            user.imageUrl,
-                            user.lastName,
-                            user.title,
-                            user.preferences?.quote,
-                            user.userSkills.map { skill ->
+            Workplace.findById(organisationId)
+                ?.load(Workplace::users)
+                ?.let { workplace ->
+                    val coordinates = MappedCoordinates.findById(organisationId)
+                    MagelloWorkAssignment(
+                        workplace.id.value,
+                        workplace.companyName,
+                        fromPoints(coordinates?.longitude, coordinates?.latitude),
+                        workplace.users.map { user ->
+                            StrippedMagelloUser(
+                                user.id.value,
+                                user.email,
+                                user.firstName,
+                                user.imageUrl,
+                                user.lastName,
+                                user.title,
+                                user.preferences?.quote,
+                                user.userSkills.map { skill ->
                                     MagelloUserSkill(
                                         id = skill.skill.id.value,
                                         favourite = skill.favourite,
@@ -39,29 +42,27 @@ class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
                                         numberOfDaysWorkExperience = skill.numberOfDaysWorkExperience
                                     )
                                 }
-                        )
-                    }
-                )
-            } else {
-                null
-            }
+                            )
+                        }
+                    )
+                }
         }
     }
 
-    fun getAllWorkAssignments(limit: Int, offset: Int): List<MagelloWorkAssignment> {
+    fun getAllWorkAssignments(limit: Int, offset: Long): List<MagelloWorkAssignment> {
         if (workflow.isJobRunning()) {
             throw JobRunningException("Job is currently running")
         }
         return transaction {
             Workplace.all()
                 .with(Workplace::users)
-                .drop(offset)
-                .take(limit)
+                .limit(limit, offset)
                 .map { workplace ->
+                    val coordinates = MappedCoordinates.findById(workplace.id.value)
                     MagelloWorkAssignment(
                         organisationId = workplace.id.value,
                         companyName = workplace.companyName,
-                        coordinates = fromPoints(workplace.longitude, workplace.latitude),
+                        coordinates = fromPoints(coordinates?.longitude, coordinates?.latitude),
                         users = workplace.users.map { user ->
                             StrippedMagelloUser(
                                 id = user.id.value,

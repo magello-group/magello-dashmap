@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
+import se.magello.db.tables.MappedCoordinates
 import se.magello.db.tables.Refresh
 import se.magello.db.tables.User
 
@@ -50,10 +51,15 @@ class MergeUserDataWorkflow(private val worker: UserDataFetcher) {
 }
 
 fun List<User>.mapToMagelloUser() = this.map { user ->
-    mapToMagelloUser(user)
+    transaction {
+        val coordinates = MappedCoordinates.findById(user.workplace.id).let {
+            fromPoints(it?.longitude, it?.latitude)
+        }
+        mapToMagelloUser(user, coordinates)
+    }
 }
 
-fun mapToMagelloUser(user: User): PublicMagelloUser {
+fun mapToMagelloUser(user: User, coordinates: MagelloCoordinates): PublicMagelloUser {
     return PublicMagelloUser(
         id = user.id.value,
         email = user.email,
@@ -76,7 +82,7 @@ fun mapToMagelloUser(user: User): PublicMagelloUser {
         assignment = MagelloWorkAssignment(
             organisationId = user.workplace.id.value,
             companyName = user.workplace.companyName,
-            coordinates = fromPoints(user.workplace.longitude, user.workplace.latitude)
+            coordinates = coordinates
         ),
         preferences = user.preferences?.let {
             MagelloUserPublicPreferences(

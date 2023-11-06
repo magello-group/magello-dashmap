@@ -9,15 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.cinode.CinodeClient
 import se.magello.cinode.CinodeSkill
 import se.magello.cinode.CinodeUser
-import se.magello.db.tables.Refresh
-import se.magello.db.tables.Skill
-import se.magello.db.tables.Skills
-import se.magello.db.tables.User
-import se.magello.db.tables.UserSkill
-import se.magello.db.tables.UserSkills
-import se.magello.db.tables.Users
-import se.magello.db.tables.Workplace
-import se.magello.db.tables.Workplaces
+import se.magello.db.tables.*
 import se.magello.map.AddressLookupClient
 import se.magello.map.AddressLookupClient.Companion.MAGELLO_OFFICE_COORDINATES
 import se.magello.salesforce.SalesForceClient
@@ -146,14 +138,18 @@ class UserDataFetcher(
                 user.assignment.organisationId
             ) ?: Workplace.new(user.assignment.organisationId) {
                 companyName = user.assignment.companyName
+            }
 
-                when (val coordinates = user.assignment.coordinates) {
-                    is MagelloCoordinates.Mapped -> {
-                        longitude = coordinates.lon
-                        latitude = coordinates.lat
-                    }
+            when (user.assignment.coordinates) {
+                is MagelloCoordinates.Mapped -> Unit // Do nothing, we already have the coordinates
 
-                    is MagelloCoordinates.Unmapped -> {
+                is MagelloCoordinates.Unmapped -> {
+                    // Notify someone that we have a new workplace that cant be found?
+                    // TODO: Use one of the repositories
+                    MappedCoordinates.findById(
+                        user.assignment.organisationId
+                    ) ?: MappedCoordinates.new(user.assignment.organisationId) {
+                        companyName = user.assignment.companyName
                         longitude = null
                         latitude = null
                     }

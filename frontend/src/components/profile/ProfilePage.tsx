@@ -13,7 +13,6 @@ import {toast} from "react-toastify";
 
 export const ProfilePage = (props: any) => {
     const {instance, accounts} = useMsal();
-    // TODO: Use profileId to fetch user, otherwise show form for Self
     const {profileId} = useParams();
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [magelloUser, setMagelloUser] = useState<MagelloUser | null>(null)

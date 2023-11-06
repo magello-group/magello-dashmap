@@ -29,7 +29,6 @@ sealed class RecordType {
     ): RecordType()
 
     @Serializable
-    // Avtal
     data class Agreement(
         @SerialName("Name") val fullName: String,
         val attributes: Attributes,
