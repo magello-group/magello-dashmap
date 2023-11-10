@@ -1,3 +1,8 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.utils.findIsInstanceAnd
+
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -5,14 +10,17 @@ val moshi_version: String by project
 val exposed_version: String by project
 
 plugins {
+  java
   application
   kotlin("jvm") version "1.9.20-RC2"
   id("io.ktor.plugin") version "2.3.5"
+  id("com.bmuschko.docker-spring-boot-application") version "9.3.7"
   kotlin("plugin.serialization") version "1.9.20-RC2"
 }
 
 group = "se.magello"
 version = "0.0.1"
+
 application {
   mainClass.set("io.ktor.server.netty.EngineMain")
 
@@ -27,6 +35,7 @@ repositories {
 kotlin {
   jvmToolchain(21)
 }
+
 java {
   toolchain {
     languageVersion.set(JavaLanguageVersion.of("21"))
@@ -74,4 +83,23 @@ dependencies {
 
   testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+}
+
+val createDockerFile = task<Dockerfile>("createDockerFile") {
+  from("eclipse-temurin:21-alpine")
+  copyFile("./application.jar", "/application.jar")
+  entryPoint("java")
+  defaultCommand("-jar", "/application.jar")
+  exposePort(8080)
+}
+
+task<Copy>("copyFatJar") {
+  from("$projectDir/build/libs/magello-dashmap-all.jar")
+  into("$projectDir/build/docker/application.jar")
+}
+
+task<DockerBuildImage>("buildDockerImage") {
+  dependsOn("createDockerFile", "copyFatJar")
+  inputDir.set(createDockerFile.destDir)
+  images.set(arrayListOf("magello-dashmap:latest"))
 }
