@@ -12,24 +12,26 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./frontend
-
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: 'true'
+          submodules: 'recursive'
 
       - name: Use Node.js 20.9
         uses: actions/setup-node@v3
         with:
           node-version: '20.9.0'
 
+      - name: Build dependency react-search-autocomplete
+        working-directory: ./react-search-autocomplete
+        run: yarn && yarn run build && rm -rf node_modules/
+
       - name: Install dependencies
+        working-directory: ./frontend
         run: yarn
 
       - name: Build project
+        working-directory: ./frontend
         run: yarn run build
 
       - name: Login to Azure
@@ -39,6 +41,7 @@ jobs:
 
       - name: Upload to blob storage
         uses: azure/CLI@v1
+        working-directory: ./frontend
         with:
           inlineScript: |
             az storage blob upload-batch --account-name magellodashmapstorage --auth-mode key -d '$web' -s build/
