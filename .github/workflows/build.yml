@@ -41,10 +41,9 @@ jobs:
 
       - name: Upload to blob storage
         uses: azure/CLI@v1
-        working-directory: ./frontend
         with:
           inlineScript: |
-            az storage blob upload-batch --account-name magellodashmapstorage --auth-mode key -d '$web' -s build/
+            az storage blob upload-batch --account-name magellodashmapstorage --auth-mode key -d '$web' -s ./frontend/build/
 
       - name: Azure logout
         run: |
