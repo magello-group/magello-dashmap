@@ -28,10 +28,9 @@ export const ProfilePage = (props: any) => {
         // Silently acquires an access token which is then attached to a request for Microsoft Graph data
         instance.acquireTokenSilent(request).then((response: AuthenticationResult) => {
             setToken(response.accessToken);
-        }).catch((e) => {
-            return instance.acquireTokenPopup(request).then((response: AuthenticationResult) => {
-                setToken(response.accessToken);
-            });
+        }).catch(async (e) => {
+            const response = await instance.acquireTokenPopup(request);
+            setToken(response.accessToken);
         });
     }, [setToken, accounts, instance])
 
@@ -100,7 +99,7 @@ export const ProfilePage = (props: any) => {
             <ProfileContents>
                 <AuthenticatedTemplate>
                     {
-                        profileId
+                        isLoading ? <div>Loading</div> : profileId
                             ? (
                                 publicMagelloUser && <>
                                     <ImageContainer>

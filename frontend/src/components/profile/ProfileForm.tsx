@@ -6,7 +6,7 @@ import {DividerSolid, FormButton, FormInput, FormLabel} from "./components/FormC
 import {Social} from "./Social";
 import {SubmitHandler, useForm} from "react-hook-form";
 import {MagelloFormPreferences, options} from "./formTypes";
-import {toast, ToastContainer} from 'react-toastify';
+import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -14,7 +14,6 @@ export const ProfileForm = ({userData, token}: { userData: MagelloUser, token: s
     const {
         register,
         handleSubmit,
-        formState: {errors},
         watch,
         control
     } = useForm<MagelloFormPreferences>({
@@ -68,7 +67,7 @@ export const ProfileForm = ({userData, token}: { userData: MagelloUser, token: s
                     });
                 }
             })
-    }, [])
+    }, [token])
 
     return (
         <Form onSubmit={handleSubmit(onSubmit)}>

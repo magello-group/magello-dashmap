@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useEffect, useState} from 'react';
+import React, {createContext, useCallback, useState} from 'react';
 import './App.css';
 import {Headers} from "./components/Headers";
 import {MapView} from "./components/map/MapView";

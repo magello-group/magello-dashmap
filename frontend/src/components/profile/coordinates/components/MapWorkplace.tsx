@@ -8,22 +8,25 @@ import {UnmappedLocationMarker} from "./UnmappedLocationMarker";
 import {LocationMarkerUpdate} from "../dataTypes";
 import {toast} from "react-toastify";
 
-export const MapWorkplace = (props: {
-    selectedWorkplace: MagelloUnmappedWorkplace,
-    onNext: (update: LocationMarkerUpdate) => void
-}) => {
+interface MapWorkplaceProps {
+    selectedWorkplace: MagelloUnmappedWorkplace;
+    onNext: (update: LocationMarkerUpdate) => void;
+}
+
+export const MapWorkplace = ({selectedWorkplace, onNext}: MapWorkplaceProps) => {
     const [position, setPosition] = useState<LatLng | null>(null)
     const temp = useRef<HTMLInputElement>(null);
 
     const onSave = useCallback(() => {
         if (position) {
-            props.onNext({
-                organisationId: props.selectedWorkplace.organisationId,
+            onNext({
+                organisationId: selectedWorkplace.organisationId,
                 latLng: position
             });
         } else {
             toast.info(() => (<div>Men du!<p
-                style={{fontSize: "14px", fontWeight: 400}}>Välj först en plats på kartan, tryck sedan på knappen</p></div>), {
+                style={{fontSize: "14px", fontWeight: 400}}>Välj först en plats på kartan, tryck sedan på knappen</p>
+            </div>), {
                 position: "bottom-center",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -34,7 +37,7 @@ export const MapWorkplace = (props: {
                 theme: "light",
             });
         }
-    }, [position])
+    }, [position, onNext, selectedWorkplace])
 
     useEffect(() => {
         setPosition(null);
@@ -46,7 +49,7 @@ export const MapWorkplace = (props: {
                 }
             }, 50)
         }
-    }, [props.selectedWorkplace]);
+    }, [selectedWorkplace]);
 
     return (
         <>
@@ -58,7 +61,7 @@ export const MapWorkplace = (props: {
                                         zoom={12}
                                         scrollWheelZoom={false}
                     >
-                        <UnmappedLocationMarker companyName={props.selectedWorkplace.companyName}
+                        <UnmappedLocationMarker companyName={selectedWorkplace.companyName}
                                                 position={position}
                                                 setPosition={setPosition}/>
                         <TileLayer
@@ -68,7 +71,7 @@ export const MapWorkplace = (props: {
                         />
                     </StyledMapContainer>
                     <MapTitle ref={temp}>
-                        Ange koordinater för <b>{props.selectedWorkplace.companyName}</b>
+                        Ange koordinater för <b>{selectedWorkplace.companyName}</b>
                     </MapTitle>
                     <SaveButton type="button" onClick={onSave}>Spara</SaveButton>
                 </MapHolderFullscreen>

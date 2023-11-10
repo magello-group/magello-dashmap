@@ -2,10 +2,10 @@ import React, {useEffect, useMemo, useState} from "react";
 import {loginRequest} from "../../authConfig";
 import {AuthenticationResult} from "@azure/msal-browser";
 import {AuthenticatedTemplate, useMsal} from "@azure/msal-react";
-import {Link, useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import styled from "styled-components";
 import {MagelloUserSkillWithUserInfo} from "../dataTypes/dataTypes";
-import {useFlexLayout, useSortBy, useTable} from "react-table"
+import {useSortBy, useTable} from "react-table"
 import {IoArrowDown, IoArrowUp} from "react-icons/io5";
 import {GoDash} from "react-icons/go";
 

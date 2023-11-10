@@ -77,7 +77,7 @@ export const AdminArea = ({token}: { token: string | null }) => {
 
     const navigateToUpdateCoordinatesPage = useCallback(() => {
         navigate("/map-workplaces", {state: {unmapped: unmappedWorkplaces, token: token}})
-    }, [unmappedWorkplaces, token])
+    }, [unmappedWorkplaces, token, navigate])
 
     return (
         <>

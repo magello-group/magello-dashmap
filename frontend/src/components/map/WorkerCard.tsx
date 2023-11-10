@@ -8,7 +8,7 @@ export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
     const navigate = useNavigate();
     const navigateToUser = useCallback(() => {
         navigate(`/profile/${worker.id}`)
-    }, [worker.id])
+    }, [worker.id, navigate])
 
     const favouriteUserSkills = worker.userSkills.filter((skill) => skill?.favourite === true);
     return (

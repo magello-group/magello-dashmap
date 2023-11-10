@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import styled from "styled-components";
-import {redirect, useLocation, useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {toast} from "react-toastify";
 import {MapWorkplace} from "./components/MapWorkplace";
 import {LocationMarkerUpdate} from "./dataTypes";
@@ -50,7 +50,7 @@ export const UpdateCoordinatesPage = () => {
         } else {
             navigate('/')
         }
-    }, [state, currentLocation]);
+    }, [state, currentLocation, navigate]);
 
     return (
         <>

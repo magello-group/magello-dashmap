@@ -6,7 +6,6 @@ import {useMsal} from "@azure/msal-react";
 import {MagelloSkill} from "../../dataTypes/dataTypes";
 import {useNavigate} from "react-router-dom";
 import {toast} from "react-toastify";
-import { DividerSolid } from "../../profile/components/FormComponents";
 
 export const SkillSearchReactAutocomplete = () => {
     let {instance, accounts} = useMsal();

@@ -1,13 +1,12 @@
-import React, {ReactNode, useCallback, useContext, useEffect, useState} from "react";
-import {MapContainer, Marker, Popup, TileLayer, useMap} from "react-leaflet";
+import React, {useCallback, useContext, useEffect, useState} from "react";
+import {MapContainer, TileLayer, useMap} from "react-leaflet";
 import styled, {css} from "styled-components";
 import {WeWorkHerePage} from "./WeWorkHerePage";
 import {MagelloWorkAssignment, Mapped} from "../dataTypes/dataTypes";
 import * as L from "leaflet";
-import {MarkerClusterGroup, MarkerClusterGroupOptions, PopupEvent} from "leaflet";
+import {PopupEvent} from "leaflet";
 import 'leaflet.markercluster';
 import {WorkplaceContext} from "../../App";
-import {createElementObject, createLayerComponent, EventedProps, extendContext} from "@react-leaflet/core";
 
 
 const latLng1 = L.latLng(55, 11);
@@ -21,7 +20,7 @@ export const MapView = () => {
 
     useEffect(() => {
         reload();
-    }, []);
+    }, [reload]);
 
     const mapContent = useCallback(() => {
         return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]} maxBounds={maxBounds} minZoom={8}
@@ -34,7 +33,7 @@ export const MapView = () => {
             <Workplaces data={data ? data : []}
                         setCurrentWorkplace={setCurrentWorkplace}/>
         </StyledMapContainer>)
-    }, [currentWorkplace, data, isLoading]);
+    }, [data, isLoading]);
 
     return (
         <>

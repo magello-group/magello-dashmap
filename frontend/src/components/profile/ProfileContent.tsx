@@ -44,7 +44,7 @@ export function ProfileContent({userData}: ProfileContentProps) {
                 sortType: sort
             }
         ] as Column[]
-    }, []);
+    }, [sort]);
 
     const {
         getTableProps,
