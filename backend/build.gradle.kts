@@ -94,6 +94,7 @@ val createDockerFile = task<Dockerfile>("createDockerFile") {
 }
 
 task<Copy>("copyFatJar") {
+  dependsOn("build")
   from("$projectDir/build/libs/magello-dashmap-all.jar")
   into("$projectDir/build/docker/application.jar")
 }

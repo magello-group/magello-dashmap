@@ -26,7 +26,7 @@ jobs:
 
       - name: Build project
         working-directory: ./backend
-        run: ./gradlew build buildDockerImage
+        run: ./gradlew buildDockerImage
 
       - name: Login to Azure container registry
         uses: azure/docker-login@v1
