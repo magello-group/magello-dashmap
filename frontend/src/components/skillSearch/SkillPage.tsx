@@ -54,7 +54,7 @@ export const SkillPage = () => {
             return;
         }
 
-        fetch(`${process.env.REACT_APP_BACKEND_HOST}/skill/${skillId}`, {
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/skill/${skillId}`, {
             method: 'GET',
             headers: {
                 "Accept": "application/json",

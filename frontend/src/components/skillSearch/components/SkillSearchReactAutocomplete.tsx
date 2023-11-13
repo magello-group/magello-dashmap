@@ -36,7 +36,7 @@ export const SkillSearchReactAutocomplete = () => {
             return Promise.resolve([])
         }
 
-        return fetch(`${process.env.REACT_APP_BACKEND_HOST}/skill/search?` + new URLSearchParams({
+        return fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/skill/search?` + new URLSearchParams({
             query: keyword,
         }), {
             method: 'GET',

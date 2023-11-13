@@ -40,7 +40,7 @@ export const ProfilePage = (props: any) => {
         }
 
         if (profileId) {
-            fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/${profileId}`, {
+            fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/users/${profileId}`, {
                 method: 'GET',
                 headers: {
                     "Accept": "application/json",
@@ -66,7 +66,7 @@ export const ProfilePage = (props: any) => {
                 }
             });
         } else {
-            fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/self`, {
+            fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/users/self`, {
                 method: 'GET',
                 headers: {
                     "Accept": "application/json",

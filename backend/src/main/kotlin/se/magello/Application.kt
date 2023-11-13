@@ -24,7 +24,7 @@ fun main(args: Array<String>): Unit =
 fun Application.module() {
     val applicationConfig = ConfigFactory.defaultApplication()
 
-    configureDatabase(applicationConfig.getConfig("database"))
+    configureDatabase(applicationConfig.getConfig("database").resolve())
 
     install(ContentNegotiation) {
         json()

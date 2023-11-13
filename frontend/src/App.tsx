@@ -70,7 +70,7 @@ export const WorkplaceContext = createContext<{
 });
 
 const fetchWorkplaces = () => {
-    return fetch(`${process.env.REACT_APP_BACKEND_HOST}/workplaces`, {
+    return fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/workplaces`, {
         method: 'GET',
         headers: {
             "Accept": "application/json",

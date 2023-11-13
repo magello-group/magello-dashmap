@@ -17,7 +17,7 @@ export const AdminArea = ({token}: { token: string | null }) => {
             },
         }
 
-        fetch(`${process.env.REACT_APP_BACKEND_HOST}/admin/coordinates/unmapped`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/admin/coordinates/unmapped`, requestOptions)
             .then((response) => {
                 if (response.status === 200) {
                     response.json().then((data) => setUnmappedWorkplaces(data))
@@ -46,7 +46,7 @@ export const AdminArea = ({token}: { token: string | null }) => {
             },
         }
 
-        fetch(`${process.env.REACT_APP_BACKEND_HOST}/admin/foodpreferences/export`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/admin/foodpreferences/export`, requestOptions)
             .then((response) => {
                 if (response.status === 200) {
                     response.blob().then((blob) => {

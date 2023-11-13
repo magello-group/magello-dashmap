@@ -18,7 +18,7 @@ export const UpdateCoordinatesPage = () => {
             },
         }
 
-        fetch(`${process.env.REACT_APP_BACKEND_HOST}/admin/coordinates/${update.organisationId}/edit?longitude=${update.latLng.lng}&latitude=${update.latLng.lat}`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/admin/coordinates/${update.organisationId}/edit?longitude=${update.latLng.lng}&latitude=${update.latLng.lat}`, requestOptions)
             .then((response) => {
                 if (response.status === 204) {
                     toast.success(() => (

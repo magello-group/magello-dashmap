@@ -41,7 +41,7 @@ export const ProfileForm = ({userData, token}: { userData: MagelloUser, token: s
             body: JSON.stringify(dataToSend)
         }
 
-        fetch(`${process.env.REACT_APP_BACKEND_HOST}/users/self/preferences`, requestOptions)
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/users/self/preferences`, requestOptions)
             .then((request) => {
                 if (request.status === 204) {
                     toast.success("Ändringarna har sparats!", {
