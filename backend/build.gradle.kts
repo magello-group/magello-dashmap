@@ -87,7 +87,7 @@ dependencies {
 
 val createDockerFile = task<Dockerfile>("createDockerFile") {
   from("eclipse-temurin:21-alpine")
-  copyFile("./application.jar", "/application.jar")
+  copyFile("./magello-dashmap-all.jar", "/application.jar")
   entryPoint("java")
   defaultCommand("-jar", "/application.jar")
   exposePort(8080)
@@ -96,7 +96,7 @@ val createDockerFile = task<Dockerfile>("createDockerFile") {
 task<Copy>("copyFatJar") {
   dependsOn("build")
   from("$projectDir/build/libs/magello-dashmap-all.jar")
-  into("$projectDir/build/docker/application.jar")
+  into("$projectDir/build/docker")
 }
 
 task<DockerBuildImage>("buildDockerImage") {

@@ -12,3 +12,8 @@ This is not a Spring project, so no magic injection is happening, just follow th
 
 Except for a lot of refactoring, documentation and testing (who really needs tests? :smirk:) you could contribute by
 checking the issues page.
+
+## Run locally
+
+Create two JSON-files in the resources folder, one for salesforce and one for cinode (ask Fabian for credentials). Change
+the path for the includes in `application.conf`-file. Don't forget to switch back before you push!
