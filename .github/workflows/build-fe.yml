@@ -39,11 +39,17 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Upload to blob storage
+      - name: Create needed directories in file shares
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            az storage blob upload-batch --account-name magellodashmapstorage --auth-mode key -d '$web' -s ./frontend/build/
+            for i in $(find frontend/build/ -type d -printf "%P\n"); do az storage directory create --account-name magellodashmapstorage --share-name temp --name "$i" --output none; if [ $? -ne 0 ]; then break; fi; done
+
+      - name: Upload files to file shares
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            for i in $(find frontend/build/ -type f -print); do az storage file upload --account-name magellodashmapstorage --share-name temp --source "$i" --path "${i#frontend/build/}"; if [ $? -ne 0 ]; then break; fi; done
 
       - name: Azure logout
         run: |
