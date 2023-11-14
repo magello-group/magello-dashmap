@@ -45,8 +45,8 @@ fun Application.module() {
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
 
-        corsConfig.getStringList("allowedHosts").forEach {
-            allowHost(it, schemes = listOf("http", "https"))
+        allowOrigins {
+            it.endsWith("magello-dashmap-be.ashybush-36e9647e.swedencentral.azurecontainerapps.io")
         }
 
         allowSameOrigin = true
