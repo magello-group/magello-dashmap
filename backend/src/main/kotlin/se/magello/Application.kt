@@ -46,9 +46,10 @@ fun Application.module() {
         allowHeader(HttpHeaders.ContentType)
 
         corsConfig.getStringList("allowedHosts").forEach {
-            allowHost(it)
+            allowHost(it, schemes = listOf("http", "https"))
         }
 
+        allowSameOrigin = true
         allowCredentials = true
     }
 
