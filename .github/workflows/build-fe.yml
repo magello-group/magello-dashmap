@@ -43,7 +43,7 @@ jobs:
         uses: azure/CLI@v1
         with:
           inlineScript: |
-            for i in $(find frontend/build/ -type d -printf "%P\n"); do az storage directory create --account-name magellodashmapstorage --share-name temp --name "$i" --output none; if [ $? -ne 0 ]; then break; fi; done
+            for i in $(find frontend/build/ -type d -print); do i=${i#frontend/build/}; if [ ! -z $i ]; then az storage directory create --account-name magellodashmapstorage --share-name temp --name "$i" --output none; if [ $? -ne 0 ]; then break; fi; fi; done
 
       - name: Upload files to file shares
         uses: azure/CLI@v1
