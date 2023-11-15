@@ -24,8 +24,7 @@ import se.magello.salesforce.responses.RecordType
 private val logger = KotlinLogging.logger {}
 
 /**
- * Combines user data from Salesforce, Cinode and company address information from Eniro in order to map and save the
- * data in the format as we want it.
+ * Combines user data from Salesforce, Cinode in order to map and save the data in the format as we want it.
  */
 class UserDataFetcher(
     private val cinodeClient: CinodeClient,

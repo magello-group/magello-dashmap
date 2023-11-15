@@ -3,6 +3,8 @@ package se.magello.plugins
 import com.typesafe.config.Config
 import io.ktor.server.config.tryGetString
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.DatabaseConfig
+import org.jetbrains.exposed.sql.ExperimentalKeywordApi
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import se.magello.db.tables.*
@@ -19,13 +21,11 @@ private val initialCoordinates = listOf(
         companyName = "Magello",
         coordinates = MAGELLO_OFFICE_COORDINATES,
     ),
-    /*
     MagelloWorkAssignment(
         "556021-0261",
         "ICA Sverige AB",
         MagelloCoordinates.Mapped(lat = 59.371593671766185, lon = 18.008744098475763),
     ),
-     */
     MagelloWorkAssignment(
         "556075-1975",
         "KG Knutsson AB",
@@ -96,21 +96,23 @@ private val initialCoordinates = listOf(
         "Svenska ESF-Rådet",
         MagelloCoordinates.Mapped(lat = 59.31420699503986, lon = 18.07115717245701)
     ),
-    /*
     MagelloWorkAssignment(
         "556703-1702",
         "Scandic Hotels",
         MagelloCoordinates.Mapped(lat = 59.350624193685064, lon = 18.04618044165233)
     )
-     */
 )
 
+@OptIn(ExperimentalKeywordApi::class)
 fun configureDatabase(config: Config) {
     val url = config.getString("url")
     val username = config.getString("username")
     val password = config.tryGetString("password") ?: ""
 
-    Database.connect(url, user = username, password = password)
+    val databaseConfig = DatabaseConfig {
+        preserveKeywordCasing = true
+    }
+    Database.connect(url, user = username, password = password, databaseConfig = databaseConfig)
 
     transaction {
         SchemaUtils.create(

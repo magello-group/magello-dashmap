@@ -62,6 +62,9 @@ dependencies {
   implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
   implementation("io.ktor:ktor-server-call-logging-jvm:$ktor_version")
 
+  implementation("org.postgresql:postgresql:42.6.0")
+
+
   // sessions since we dont have a frontend
   implementation("io.ktor:ktor-server-sessions-jvm:$ktor_version")
   implementation("ch.qos.logback:logback-classic:$logback_version")

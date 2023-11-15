@@ -9,7 +9,7 @@ import org.jetbrains.exposed.dao.id.IdTable
  * User Preferences table with DAO
  */
 object UserPreferences : IdTable<String>() {
-    override val id = varchar("id", 1024).entityId()
+    override val id = varchar("id", 1024).entityId().uniqueIndex()
     val dietPreferences = text("dietPreferences", eagerLoading = true)
     val extraDietPreferences = text("extraDietPreferences", eagerLoading = true).nullable()
     val socials = text("socials", eagerLoading = true)

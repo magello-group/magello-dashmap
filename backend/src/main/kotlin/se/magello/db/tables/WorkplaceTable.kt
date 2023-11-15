@@ -9,7 +9,7 @@ import org.jetbrains.exposed.dao.id.IdTable
  * Workplaces table with DAO
  */
 object Workplaces : IdTable<String>() {
-    override val id = varchar("id", 25).entityId()
+    override val id = varchar("id", 25).entityId().uniqueIndex()
     val companyName = varchar("companyName", 1024).index()
 }
 class Workplace(id: EntityID<String>) : Entity<String>(id) {

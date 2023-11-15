@@ -44,7 +44,9 @@ fun Application.configureRouting(config: Config) {
 
     val staticFileDirPath = config.getConfig("frontend").getString("staticFilePath")
     val routes = routing {
-        staticFiles("/", File(staticFileDirPath))
+        singlePageApplication {
+            react(staticFileDirPath)
+        }
 
         get<Api.Workplaces.Workplace> {
             try {
