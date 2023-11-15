@@ -39,8 +39,3 @@ jobs:
         run: |
           docker tag magello-dashmap:latest ${{ secrets.REGISTRY_LOGIN_SERVER }}/magello-dashmap-be:latest
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/magello-dashmap-be:latest
-
-      - name: Azure logout
-        run: |
-          az logout
-        if: always()
