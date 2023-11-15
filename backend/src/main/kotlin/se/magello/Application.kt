@@ -45,7 +45,7 @@ fun Application.module() {
         allowHeader(HttpHeaders.ContentType)
 
         allowOrigins {
-            it.endsWith("magello-dashmap-be.ashybush-36e9647e.swedencentral.azurecontainerapps.io")
+            it.endsWith("magello-dashmap-backend.nicefield-05120e49.swedencentral.azurecontainerapps.io")
         }
 
         allowSameOrigin = true
