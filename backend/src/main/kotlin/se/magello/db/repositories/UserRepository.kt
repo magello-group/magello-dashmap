@@ -40,6 +40,9 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
     }
 
     fun getUserSelf(principal: JWTPrincipal): MagelloUserSelf? {
+        if (workflow.isJobRunning()) {
+            throw JobRunningException("Job is currently running")
+        }
         val email = principal.getClaim("email", String::class) ?: return null
 
         return transaction {
@@ -132,7 +135,7 @@ class UserRepository(private val workflow: MergeUserDataWorkflow) {
         return transaction {
             User.all()
                 .limit(limit, offset)
-                .with(User::workplace, User::userSkills)
+                .with(User::workplace)
                 .toList()
                 .mapToMagelloUser()
         }

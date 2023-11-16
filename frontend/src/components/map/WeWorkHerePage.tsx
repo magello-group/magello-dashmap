@@ -1,27 +1,70 @@
-import React from "react";
-import {MagelloWorkAssignment} from "../dataTypes/dataTypes";
+import React, {useEffect, useState} from "react";
+import {MagelloWorkAssignment, MagelloWorkPlace} from "../dataTypes/dataTypes";
 import styled from "styled-components";
 import {WorkerCard} from "./WorkerCard";
+import {useAccessToken} from "../../hooks/useAccessToken";
+import {toast} from "react-toastify";
 
-export const WeWorkHerePage = ({currentWorkplace}: { currentWorkplace: MagelloWorkAssignment | null }) => {
+export const WeWorkHerePage = ({workplace}: { workplace: MagelloWorkPlace | null }) => {
+    const [accessToken, _, tokenIsLoading] = useAccessToken();
+    const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkAssignment>()
+    const [isLoading, setIsLoading] = useState(tokenIsLoading);
+
+    useEffect(() => {
+        if (!accessToken) {
+            return;
+        }
+
+        fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/workplaces/${workplace?.organisationId}`, {
+            method: 'GET',
+            headers: {
+                "Accept": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            }
+        }).then((response) => {
+            if (response.status === 200) {
+                response.json().then((body) => {
+                    setCurrentWorkplace(body);
+                    setIsLoading(false);
+                })
+            } else {
+                toast.error(() => (
+                    <div>Hämtning av profil misslyckades<p style={{fontSize: "14px", fontWeight: 400}}>Fick
+                        status {response.status}, prova att refresha sidan!</p></div>), {
+                    position: "bottom-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                });
+            }
+        });
+    }, [accessToken, workplace]);
+
     return (
-        currentWorkplace ?
-            <WorkDisplayArea>
-                <WorkplaceName>
-                    <b>{currentWorkplace.companyName}</b> -
-                    {currentWorkplace.companyName === 'Magello'
-                        ? " Vi är mellan uppdrag"
-                        : " Det är vi som jobbar här!"
-                    }
-                </WorkplaceName>
-                <WorkerArea>
-                    {
-                        currentWorkplace.users.map((worker) => {
-                            return (<WorkerCard key={worker.id} worker={worker}/>)
-                        })
-                    }
-                </WorkerArea>
-            </WorkDisplayArea> : <div/>
+        isLoading
+            ? <div>Loading...</div>
+            : currentWorkplace
+                ? (<WorkDisplayArea>
+                    <WorkplaceName>
+                        <b>{currentWorkplace.companyName}</b> -
+                        {currentWorkplace.companyName === 'Magello'
+                            ? " Vi är mellan uppdrag"
+                            : " Det är vi som jobbar här!"
+                        }
+                    </WorkplaceName>
+                    <WorkerArea>
+                        {
+                            currentWorkplace.users.map((worker) => {
+                                return (<WorkerCard key={worker.id} worker={worker}/>)
+                            })
+                        }
+                    </WorkerArea>
+                </WorkDisplayArea>)
+                : (<div/>)
     )
 }
 

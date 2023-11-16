@@ -13,6 +13,7 @@ import io.ktor.server.resources.post
 import io.ktor.server.resources.put
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import mu.KotlinLogging
 import se.magello.cinode.CinodeClient
 import se.magello.db.repositories.MapCoordinatesRepository
@@ -49,56 +50,48 @@ fun Application.configureRouting(config: Config) {
         }
 
         get<Api.Workplaces.Workplace> {
-            try {
+            runCatchingJobError {
                 val message = workAssignmentRepository.getWorkAssignment(it.organisationId)
                 if (message == null) {
                     call.respond(HttpStatusCode.NotFound)
                 } else {
                     call.respond(message)
                 }
-            } catch (je: JobRunningException) {
-                call.respond(HttpStatusCode.ServiceUnavailable)
             }
         }
         get<Api.Workplaces> {
-            try {
+            runCatchingJobError {
                 val message = workAssignmentRepository.getAllWorkAssignments(it.limit, it.offset)
                 call.respond(message)
-            } catch (je: JobRunningException) {
-                call.respond(HttpStatusCode.ServiceUnavailable)
             }
         }
         authenticate("azure-jwt") {
             // Users
             get<Api.Users> {
-                try {
+                runCatchingJobError {
                     val allUsers = userRepository.getAllUsers(it.limit, it.offset)
                     call.respond(allUsers)
-                } catch (je: JobRunningException) {
-                    // TODO: Make it so we don't have to copy this
-                    call.respond(HttpStatusCode.ServiceUnavailable)
                 }
             }
             get<Api.Users.Id> {
-                try {
+                runCatchingJobError {
                     userRepository.getUser(it.userId)?.let { user ->
                         call.respond(user)
                     } ?: run {
                         call.respond(HttpStatusCode.NotFound)
                     }
-                } catch (je: JobRunningException) {
-                    // TODO: Make it so we don't have to copy this
-                    call.respond(HttpStatusCode.ServiceUnavailable)
                 }
             }
             get<Api.Users.Self> {
-                when (val principal = call.principal<JWTPrincipal>()) {
-                    null -> call.respond(HttpStatusCode.Unauthorized)
+                runCatchingJobError {
+                    when (val principal = call.principal<JWTPrincipal>()) {
+                        null -> call.respond(HttpStatusCode.Unauthorized)
 
-                    else -> {
-                        when (val userSelf = userRepository.getUserSelf(principal)) {
-                            null -> call.respond(HttpStatusCode.NotFound)
-                            else -> call.respond(userSelf)
+                        else -> {
+                            when (val userSelf = userRepository.getUserSelf(principal)) {
+                                null -> call.respond(HttpStatusCode.NotFound)
+                                else -> call.respond(userSelf)
+                            }
                         }
                     }
                 }
@@ -173,4 +166,12 @@ fun Application.configureRouting(config: Config) {
 
 fun allRoutes(root: Route): List<Route> {
     return listOf(root) + root.children.flatMap { allRoutes(it) }
+}
+
+suspend fun PipelineContext<Unit, ApplicationCall>.runCatchingJobError(func: suspend () -> Unit) {
+    try {
+        func()
+    } catch (e: JobRunningException) {
+        call.respond(HttpStatusCode.ServiceUnavailable)
+    }
 }

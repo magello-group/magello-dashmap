@@ -328,6 +328,13 @@ data class MagelloWorkAssignment(
 )
 
 @Serializable
+data class MagelloWorkPlace(
+    val organisationId: String,
+    val companyName: String,
+    val coordinates: MagelloCoordinates,
+)
+
+@Serializable
 sealed class MagelloCoordinates {
     @Serializable
     @SerialName("unmapped")

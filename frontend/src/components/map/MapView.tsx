@@ -2,12 +2,11 @@ import React, {useCallback, useContext, useEffect, useState} from "react";
 import {MapContainer, TileLayer, useMap} from "react-leaflet";
 import styled, {css} from "styled-components";
 import {WeWorkHerePage} from "./WeWorkHerePage";
-import {MagelloWorkAssignment, Mapped} from "../dataTypes/dataTypes";
+import {MagelloWorkPlace, Mapped} from "../dataTypes/dataTypes";
 import * as L from "leaflet";
 import {PopupEvent} from "leaflet";
 import 'leaflet.markercluster';
 import {WorkplaceContext} from "../../App";
-
 
 const latLng1 = L.latLng(55, 11);
 const latLng2 = L.latLng(63, 20);
@@ -16,7 +15,7 @@ export const maxBounds = L.latLngBounds(latLng2, latLng1);
 
 export const MapView = () => {
     const {workplaces: data, isLoading, reload} = useContext(WorkplaceContext);
-    const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkAssignment | null>(null)
+    const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkPlace | null>(null)
 
     useEffect(() => {
         reload();
@@ -24,7 +23,7 @@ export const MapView = () => {
 
     const mapContent = useCallback(() => {
         return (isLoading ? <div/> : <StyledMapContainer center={[59.325, 18.07]} maxBounds={maxBounds} minZoom={8}
-                                                         zoom={12} scrollWheelZoom={false}>
+                                                         zoom={12} scrollWheelZoom={true}>
             <TileLayer
                 attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
                 url="https://tiles-eu.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
@@ -40,7 +39,7 @@ export const MapView = () => {
             <MapHolderFullscreen style={currentWorkplace ? {height: "calc(55vh - 80px)"} : undefined}>
                 {mapContent()}
             </MapHolderFullscreen>
-            {currentWorkplace && <WeWorkHerePage currentWorkplace={currentWorkplace}/>}
+            {currentWorkplace && <WeWorkHerePage workplace={currentWorkplace}/>}
         </>
     )
 }
@@ -49,8 +48,8 @@ const Workplaces = ({
                         data,
                         setCurrentWorkplace
                     }: {
-    data: MagelloWorkAssignment[],
-    setCurrentWorkplace: React.Dispatch<React.SetStateAction<MagelloWorkAssignment | null>>
+    data: MagelloWorkPlace[],
+    setCurrentWorkplace: React.Dispatch<React.SetStateAction<MagelloWorkPlace | null>>
 }) => {
     const map = useMap();
 

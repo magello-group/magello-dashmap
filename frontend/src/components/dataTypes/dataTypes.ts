@@ -3,7 +3,12 @@ export interface MagelloWorkAssignment {
     companyName: string
     coordinates: MagelloCoordinates;
     users: StrippedMagelloUser[]
+}
 
+export interface MagelloWorkPlace {
+    organisationId: string
+    companyName: string
+    coordinates: MagelloCoordinates;
 }
 
 export type MagelloCoordinates = Unmapped | Mapped;

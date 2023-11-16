@@ -10,14 +10,13 @@ export const WorkerCard = ({worker}: { worker: StrippedMagelloUser }) => {
         navigate(`/profile/${worker.id}`)
     }, [worker.id, navigate])
 
-    const favouriteUserSkills = worker.userSkills.filter((skill) => skill?.favourite === true);
     return (
         <Content onClick={navigateToUser}>
             <WorkerImageCard imageUrl={worker.imageUrl}/>
             <Name>{worker.firstName} {worker.lastName}</Name>
             {worker.quote && (<Quote>{worker.quote ? worker.quote : ""}</Quote>)}
             <SkillArea>
-                {favouriteUserSkills.slice(0, Math.min(3, favouriteUserSkills.length)).map((skill) => (
+                {worker.userSkills.map((skill) => (
                     <SkillBadge key={skill.id}>{skill.masterSynonym} | {skill.level}</SkillBadge>
                 ))}
             </SkillArea>

@@ -2,9 +2,9 @@ package se.magello.db.repositories
 
 import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.dao.with
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.transactions.transaction
-import se.magello.db.tables.MappedCoordinates
-import se.magello.db.tables.Workplace
+import se.magello.db.tables.*
 import se.magello.workflow.*
 
 class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
@@ -30,18 +30,22 @@ class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
                                 user.lastName,
                                 user.title,
                                 user.preferences?.quote,
-                                user.userSkills.map { skill ->
-                                    MagelloUserSkill(
-                                        id = skill.skill.id.value,
-                                        favourite = skill.favourite,
-                                        masterSynonym = skill.skill.masterSynonym,
-                                        synonyms = skill.skill.synonyms?.split(";") ?: emptyList(),
-                                        level = skill.level,
-                                        levelGoal = skill.levelGoal,
-                                        levelGoalDeadline = skill.levelGoalDeadline,
-                                        numberOfDaysWorkExperience = skill.numberOfDaysWorkExperience
-                                    )
-                                }
+                                user.userSkills
+                                    .orderBy(UserSkills.favourite to SortOrder.DESC)
+                                    .limit(3)
+                                    .filter { it.favourite }
+                                    .map { skill ->
+                                        MagelloUserSkill(
+                                            id = skill.skill.id.value,
+                                            favourite = skill.favourite,
+                                            masterSynonym = skill.skill.masterSynonym,
+                                            synonyms = skill.skill.synonyms?.split(";") ?: emptyList(),
+                                            level = skill.level,
+                                            levelGoal = skill.levelGoal,
+                                            levelGoalDeadline = skill.levelGoalDeadline,
+                                            numberOfDaysWorkExperience = skill.numberOfDaysWorkExperience
+                                        )
+                                    }
                             )
                         }
                     )
@@ -49,43 +53,19 @@ class WorkAssignmentRepository(private val workflow: MergeUserDataWorkflow) {
         }
     }
 
-    fun getAllWorkAssignments(limit: Int, offset: Long): List<MagelloWorkAssignment> {
+    fun getAllWorkAssignments(limit: Int, offset: Long): List<MagelloWorkPlace> {
         if (workflow.isJobRunning()) {
             throw JobRunningException("Job is currently running")
         }
         return transaction {
             Workplace.all()
-                .with(Workplace::users)
                 .limit(limit, offset)
                 .map { workplace ->
                     val coordinates = MappedCoordinates.findById(workplace.id.value)
-                    MagelloWorkAssignment(
+                    MagelloWorkPlace(
                         organisationId = workplace.id.value,
                         companyName = workplace.companyName,
                         coordinates = fromPoints(coordinates?.longitude, coordinates?.latitude),
-                        users = workplace.users.map { user ->
-                            StrippedMagelloUser(
-                                id = user.id.value,
-                                email = user.email,
-                                firstName = user.firstName,
-                                imageUrl = user.imageUrl,
-                                lastName = user.lastName,
-                                title = user.title,
-                                quote = user.preferences?.quote,
-                                userSkills = user.userSkills.map { skill ->
-                                    MagelloUserSkill(
-                                        id = skill.skill.id.value,
-                                        favourite = skill.favourite,
-                                        masterSynonym = skill.skill.masterSynonym,
-                                        synonyms = skill.skill.synonyms?.split(";") ?: emptyList(),
-                                        level = skill.level,
-                                        levelGoal = skill.levelGoal,
-                                        levelGoalDeadline = skill.levelGoalDeadline,
-                                        numberOfDaysWorkExperience = skill.numberOfDaysWorkExperience
-                                    )
-                                }
-                            )
-                        }
                     )
                 }
         }

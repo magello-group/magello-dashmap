@@ -8,30 +8,28 @@ export const useAccessToken = (): [string | null, AccountInfo[], boolean] => {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true)
 
-    const requestAccessToken = () => {
+    useEffect(() => {
         const request = {
             ...loginRequest,
             account: accounts[0]
         };
 
         // Silently acquires an access token which is then attached to a request for Microsoft Graph data
-        return instance.acquireTokenSilent(request).then((response: AuthenticationResult) => {
+        instance.acquireTokenSilent(request).then((response: AuthenticationResult) => {
             setAccessToken(response.accessToken);
             setIsLoading(false);
             return response.accessToken;
-        }).catch((e) => {
-            return instance.acquireTokenPopup(request).then((response: AuthenticationResult) => {
+        }).catch(async (e) => {
+            try {
+                let response = await instance.acquireTokenPopup(request);
                 setAccessToken(response.accessToken);
                 setIsLoading(false);
 
                 return response.accessToken;
-            });
+            } catch (error) {
+                return console.log(error);
+            }
         });
-    }
-
-    // TODO: make this usable
-    useEffect(() => {
-        requestAccessToken().then()
     }, [instance, accounts])
 
     return [accessToken, accounts, isLoading]
