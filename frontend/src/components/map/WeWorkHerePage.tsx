@@ -6,9 +6,9 @@ import {useAccessToken} from "../../hooks/useAccessToken";
 import {toast} from "react-toastify";
 
 export const WeWorkHerePage = ({workplace}: { workplace: MagelloWorkPlace | null }) => {
-    const [accessToken, _, tokenIsLoading] = useAccessToken();
+    const {accessToken, tokenLoading} = useAccessToken();
     const [currentWorkplace, setCurrentWorkplace] = useState<MagelloWorkAssignment>()
-    const [isLoading, setIsLoading] = useState(tokenIsLoading);
+    const [isLoading, setIsLoading] = useState(tokenLoading);
 
     useEffect(() => {
         if (!accessToken) {
